@@ -1,0 +1,9 @@
+{
+  "title": "Chess AI",
+  "description": "Play chess against an AI opponent — or watch two AIs battle it out. Control speed, perspective, and autoplay settings.",
+  "keywords": ["chess", "AI", "strategy", "board game", "two player", "autoplay"],
+  "category": "Strategy",
+  "author": "",
+  "image": "preview.png",
+  "playMode": "SinglePlayer"
+}

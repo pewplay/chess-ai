@@ -70,6 +70,10 @@ aside div svg {
 html,
 body {
   height: 100%;
+  touch-action: none;
+  -webkit-user-select: none;
+  user-select: none;
+  font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
 }
 
 body {
