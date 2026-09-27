@@ -1,8 +1,69 @@
 {
+  "$schema": "https://raw.githubusercontent.com/pewplay/pewplay/main/schema/game.schema.json",
   "title": "Chess AI",
-  "description": "Play a game of chess against a smart artificial intelligence.",
-  "keywords": ["chess", "board", "strategy", "ai", "logic"],
+  "description": "Play chess against a computer that picks random moves, challenge a friend, or watch two bots battle on a wooden board, free in your browser.",
+  "about": "Chess AI is a relaxed, good-looking chess board with a wooden frame and smooth sliding pieces. Tap a piece and every legal square lights up, while tiny icons on each tile show which pieces can reach it, so it is easy to see threats and plan captures at a glance.\n\nThe rules are real chess: moves that would leave your king in check are blocked, and castling, en passant and pawn promotion to a queen all work. By default you play White against a computer opponent that chooses random legal moves, which makes it a friendly sparring partner rather than a grandmaster.\n\nThe Auto switches let the computer play either side, so you can hand both colours to a friend on the same device or sit back and watch a bot-versus-bot game at up to 20 moves per second. It is ideal for beginners learning how pieces move and for anyone who wants a quick, casual game.",
+  "howToPlay": "You play White and move first: tap one of your pieces to see its legal moves, then tap a highlighted square to move or capture. Black answers automatically when its Auto switch is on. Checkmate the enemy king to win; if a side has no legal moves and is not in check, the game is a stalemate.",
+  "controls": [
+    {
+      "input": "Click / Tap piece",
+      "action": "Select a piece and show its moves"
+    },
+    {
+      "input": "Click / Tap square",
+      "action": "Move or capture"
+    },
+    {
+      "input": "Auto kings",
+      "action": "Let the computer play White or Black"
+    },
+    {
+      "input": "APS 1 2 4 20",
+      "action": "Set the computer's moves per second"
+    },
+    {
+      "input": "POV kings",
+      "action": "Flip the board to White or Black"
+    }
+  ],
+  "tips": [
+    "Watch the small piece icons on each square: they show which pieces from both sides can move to or capture there.",
+    "The computer moves at random, so set simple traps and it will often walk right into them.",
+    "Turn off Black's Auto switch to play a friend on the same screen, taking turns with the pieces.",
+    "Switch both Auto kings on and pick 20 APS to watch a full random game play out in seconds."
+  ],
+  "faq": [
+    {
+      "question": "Is Chess AI free to play?",
+      "answer": "Yes. It is completely free and runs in your browser with no download or sign-up."
+    },
+    {
+      "question": "Can I play on a phone or tablet?",
+      "answer": "Yes. Tap a piece and then a highlighted square to move; the board scales to fit phone and tablet screens."
+    },
+    {
+      "question": "How strong is the computer opponent?",
+      "answer": "Not strong at all: it picks a random legal move each turn, so it is best for learning and casual games rather than serious training."
+    }
+  ],
   "category": "Board",
+  "tags": [
+    "chess",
+    "board game",
+    "strategy",
+    "two player",
+    "computer opponent"
+  ],
   "author": "PewPlay",
-  "playMode": "SinglePlayer"
+  "playMode": "Both",
+  "orientation": "any",
+  "cover": "cover.png",
+  "screenshots": [
+    "screenshots/1.png",
+    "screenshots/2.png",
+    "screenshots/3.png"
+  ],
+  "exclude": [
+    "script.js"
+  ]
 }

@@ -1,5 +1,4 @@
 "use strict";
-console.clear();
 let PIECE_DIR_CALC = 0;
 class Utils {
     static colToInt(col) {
@@ -801,7 +800,6 @@ class Game {
         this.turn = this.turn === "WHITE" ? "BLACK" : "WHITE";
         this.board.piecesUpdate(this.moveIndex);
         const state = this.moveResultState();
-        console.log(state);
         if (!state.moves && !state.captures) {
             alert(state.stalemate ? "Stalemate!" : `${this.turn === "WHITE" ? "Black" : "White"} Wins!`);
         }
