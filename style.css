@@ -77,6 +77,9 @@ body {
 }
 
 body {
+  margin: 0;
+  display: flow-root;
+  -webkit-tap-highlight-color: transparent;
   background: var(--color-background);
   overflow: hidden;
   transition: background-color 250ms ease-in-out;
@@ -332,4 +335,11 @@ svg.black { --fill: var(--color-black); }
   top: 50%;
   transform: translate(-50%, -50%);
   width: var(--svg-di);
+}
+/* PewPlay: bigger frame for the controls on portrait phones */
+@media (orientation: portrait) and (max-width: 700px) {
+  :root {
+    --diameter-board: min(78vw, 70vh);
+    --edge-width: calc((100vw - var(--diameter-board)) * 0.45);
+  }
 }
