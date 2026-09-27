@@ -2,6 +2,32 @@
   "$schema": "https://raw.githubusercontent.com/pewplay/pewplay/main/schema/game.schema.json",
   "title": "Chess AI",
   "description": "Play a game of chess against a smart artificial intelligence.",
+  "about": "Chess AI is a browser game where you select a piece, then select its destination square to play against the computer. Use the on-screen options to adjust the view or AI speed.\n\nStart a round in your browser and use the controls below to play.",
+  "howToPlay": "Select a piece, then select its destination square to play against the computer. Use the on-screen options to adjust the view or AI speed.",
+  "controls": [
+    {
+      "input": "Click / tap",
+      "action": "Choose a piece and move square"
+    },
+    {
+      "input": "On-screen options",
+      "action": "Adjust the AI and board view"
+    }
+  ],
+  "tips": [
+    "Use click / tap to choose a piece and move square.",
+    "Try another round to practice the timing and strategy."
+  ],
+  "faq": [
+    {
+      "question": "How do I play Chess AI?",
+      "answer": "Select a piece, then select its destination square to play against the computer. Use the on-screen options to adjust the view or AI speed."
+    },
+    {
+      "question": "Can I play Chess AI in a browser?",
+      "answer": "Yes. Open the game page and play without installing an app."
+    }
+  ],
   "category": "Board",
   "tags": [
     "chess",
@@ -10,6 +36,9 @@
     "ai",
     "logic"
   ],
-  "author": "PewPlay",
-  "playMode": "SinglePlayer"
+  "playMode": "SinglePlayer",
+  "orientation": "any",
+  "cover": "cover.png",
+  "draft": true,
+  "author": "PewPlay"
 }
