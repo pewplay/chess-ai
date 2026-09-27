@@ -1,8 +1,15 @@
 {
+  "$schema": "https://raw.githubusercontent.com/pewplay/pewplay/main/schema/game.schema.json",
   "title": "Chess AI",
   "description": "Play a game of chess against a smart artificial intelligence.",
-  "keywords": ["chess", "board", "strategy", "ai", "logic"],
   "category": "Board",
+  "tags": [
+    "chess",
+    "board",
+    "strategy",
+    "ai",
+    "logic"
+  ],
   "author": "PewPlay",
   "playMode": "SinglePlayer"
 }
