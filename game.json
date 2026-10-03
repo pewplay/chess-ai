@@ -1,36 +1,44 @@
 {
   "$schema": "https://raw.githubusercontent.com/pewplay/pewplay/main/schema/game.schema.json",
   "title": "Chess AI",
-  "description": "Play chess against a computer that picks random moves, challenge a friend, or watch two bots battle on a wooden board, free in your browser.",
-  "about": "Chess AI is a relaxed, good-looking chess board with a wooden frame and smooth sliding pieces. Tap a piece and every legal square lights up, while tiny icons on each tile show which pieces can reach it, so it is easy to see threats and plan captures at a glance.\n\nThe rules are real chess: moves that would leave your king in check are blocked, and castling, en passant and pawn promotion to a queen all work. By default you play White against a computer opponent that chooses random legal moves, which makes it a friendly sparring partner rather than a grandmaster.\n\nThe Auto switches let the computer play either side, so you can hand both colours to a friend on the same device or sit back and watch a bot-versus-bot game at up to 20 moves per second. It is ideal for beginners learning how pieces move and for anyone who wants a quick, casual game.",
-  "howToPlay": "You play White and move first: tap one of your pieces to see its legal moves, then tap a highlighted square to move or capture. Black answers automatically when its Auto switch is on. Checkmate the enemy king to win; if a side has no legal moves and is not in check, the game is a stalemate.",
+  "description": "Play chess against a computer with four difficulty levels, challenge a friend on the same screen, or watch two bots battle on a wooden board, free in your browser.",
+  "about": "Chess AI is a relaxed, good-looking chess board with a wooden frame and smooth sliding pieces. Tap or drag a piece and every legal square lights up, while tiny icons on each tile show which of your pieces can reach it, so threats and captures are easy to spot at a glance.\n\nThe rules are complete: moves that would leave your king in check are blocked, castling, en passant and promotion (to a queen, rook, bishop or knight) all work, and the game recognises checkmate, stalemate, threefold repetition, the fifty-move rule and insufficient material. The computer opponent can play random moves, as in the original version, or think for real at Easy, Medium and Hard, and it does its thinking in the background so the board never freezes.\n\nPlay White or Black against the computer, hand the device to a friend for a two-player game, or sit back and watch a bot-versus-bot game at up to 20 moves per second. Undo takes back your last move, and your game and options are saved automatically, so you can close the page and carry on later.",
+  "howToPlay": "Choose who you play in the options (White, Black, 2 players or Watch) and the computer's strength. To move, tap one of your pieces and then tap a highlighted square, or simply drag the piece there. Dots mark free squares and red rings mark captures. When a pawn reaches the last rank, pick the piece it becomes. Checkmate the enemy king to win; the game also ends in a draw by stalemate, repetition, the fifty-move rule or insufficient material.",
   "controls": [
     {
-      "input": "Click / Tap piece",
-      "action": "Select a piece and show its moves"
+      "input": "Tap / Click piece, then square",
+      "action": "Select a piece and move or capture"
     },
     {
-      "input": "Click / Tap square",
-      "action": "Move or capture"
+      "input": "Drag piece",
+      "action": "Move a piece by dragging it to a highlighted square"
     },
     {
-      "input": "Auto kings",
-      "action": "Let the computer play White or Black"
+      "input": "Undo button / U",
+      "action": "Take back your last move"
     },
     {
-      "input": "APS 1 2 4 20",
-      "action": "Set the computer's moves per second"
+      "input": "Flip button / F",
+      "action": "Turn the board around (point of view)"
     },
     {
-      "input": "POV kings",
-      "action": "Flip the board to White or Black"
+      "input": "New game button",
+      "action": "Start again (tap twice during a game)"
+    },
+    {
+      "input": "You play / Computer / Speed",
+      "action": "Pick your side, the AI level and its moves per second"
+    },
+    {
+      "input": "Esc",
+      "action": "Cancel the current selection"
     }
   ],
   "tips": [
-    "Watch the small piece icons on each square: they show which pieces from both sides can move to or capture there.",
-    "The computer moves at random, so set simple traps and it will often walk right into them.",
-    "Turn off Black's Auto switch to play a friend on the same screen, taking turns with the pieces.",
-    "Switch both Auto kings on and pick 20 APS to watch a full random game play out in seconds."
+    "Watch the small piece icons on each square: they show which of your pieces can move there, and red icons mark the captures available.",
+    "Start on Random or Easy to learn the moves, then move up to Medium and Hard when you start winning.",
+    "Choose 2 players to play a friend on the same screen, taking turns with the pieces.",
+    "Pick Watch and a speed of 20 to see a whole computer game play out in seconds."
   ],
   "faq": [
     {
@@ -39,11 +47,15 @@
     },
     {
       "question": "Can I play on a phone or tablet?",
-      "answer": "Yes. Tap a piece and then a highlighted square to move; the board scales to fit phone and tablet screens."
+      "answer": "Yes. Tap a piece and then a highlighted square, or drag it. The board fills the screen in both portrait and landscape, and the options move to a pop-up panel on small screens."
     },
     {
       "question": "How strong is the computer opponent?",
-      "answer": "Not strong at all: it picks a random legal move each turn, so it is best for learning and casual games rather than serious training."
+      "answer": "You choose: Random plays any legal move, Easy makes beginner mistakes, Medium plays solid tactical chess and Hard looks several moves ahead. None of them is a grandmaster, so it is great for practice and casual games."
+    },
+    {
+      "question": "Is my game saved?",
+      "answer": "Yes. The current game and your options are stored in your browser, so you can close the page and continue later."
     }
   ],
   "category": "Board",

@@ -1,1039 +1,803 @@
-"use strict";
-let PIECE_DIR_CALC = 0;
-class Utils {
-    static colToInt(col) {
-        return Board.COLS.indexOf(col);
-    }
-    static rowToInt(row) {
-        return Board.ROWS.indexOf(row);
-    }
-    static intToCol(int) {
-        return Board.COLS[int];
-    }
-    static intToRow(int) {
-        return Board.ROWS[int];
-    }
-    static getPositionsFromShortCode(shortCode) {
-        const positions = Utils.getInitialPiecePositions();
-        const overrides = {};
-        const defaultPositionMode = shortCode.charAt(0) === "X";
-        if (defaultPositionMode) {
-            shortCode = shortCode.slice(1);
-        }
-        shortCode.split(",").forEach((string) => {
-            const promoted = string.charAt(0) === "P";
-            if (promoted) {
-                string = string.slice(1);
-            }
-            if (defaultPositionMode) {
-                const inactive = string.length === 3;
-                const id = string.slice(0, 2);
-                const col = inactive ? undefined : string.charAt(2);
-                const row = inactive ? undefined : string.charAt(3);
-                const moves = string.charAt(4) || "1";
-                overrides[id] = {
-                    col,
-                    row,
-                    active: !inactive,
-                    _moves: parseInt(moves),
-                    _promoted: promoted,
-                };
-            }
-            else {
-                const moved = string.length >= 4;
-                const id = string.slice(0, 2);
-                const col = string.charAt(moved ? 2 : 0);
-                const row = string.charAt(moved ? 3 : 1);
-                const moves = string.charAt(4) || moved ? "1" : "0";
-                overrides[id] = { col, row, active: true, _moves: parseInt(moves), _promoted: promoted };
-            }
-        });
-        for (let id in positions) {
-            if (overrides[id]) {
-                positions[id] = overrides[id];
-            }
-            else {
-                positions[id] = defaultPositionMode ? positions[id] : { active: false };
-            }
-        }
-        return positions;
-    }
-    static getInitialBoardPieces(parent, pieces) {
-        const boardPieces = {};
-        const container = document.createElement("div");
-        container.className = "pieces";
-        parent.appendChild(container);
-        for (let pieceId in pieces) {
-            const boardPiece = document.createElement("div");
-            boardPiece.className = `piece ${pieces[pieceId].data.player.toLowerCase()}`;
-            boardPiece.innerHTML = pieces[pieceId].shape();
-            container.appendChild(boardPiece);
-            boardPieces[pieceId] = boardPiece;
-        }
-        return boardPieces;
-    }
-    static getInitialBoardTiles(parent, handler) {
-        const tiles = { 1: {}, 2: {}, 3: {}, 4: {}, 5: {}, 6: {}, 7: {}, 8: {} };
-        const board = document.createElement("div");
-        board.className = "board";
-        parent.appendChild(board);
-        for (let i = 0; i < 8; i++) {
-            const row = document.createElement("div");
-            row.className = "row";
-            board.appendChild(row);
-            for (let j = 0; j < 8; j++) {
-                const tile = document.createElement("button");
-                tile.className = "tile";
-                const r = Utils.intToRow(i);
-                const c = Utils.intToCol(j);
-                tile.addEventListener("click", () => handler({ row: r, col: c }));
-                row.appendChild(tile);
-                tiles[r][c] = tile;
-            }
-        }
-        return tiles;
-    }
-    static getInitialBoardState(construct = () => undefined) {
-        const blankRow = () => ({
-            A: construct(),
-            B: construct(),
-            C: construct(),
-            D: construct(),
-            E: construct(),
-            F: construct(),
-            G: construct(),
-            H: construct(),
-        });
-        return {
-            1: Object.assign({}, blankRow()),
-            2: Object.assign({}, blankRow()),
-            3: Object.assign({}, blankRow()),
-            4: Object.assign({}, blankRow()),
-            5: Object.assign({}, blankRow()),
-            6: Object.assign({}, blankRow()),
-            7: Object.assign({}, blankRow()),
-            8: Object.assign({}, blankRow()),
-        };
-    }
-    static getInitialPiecePositions() {
-        return {
-            A8: { active: true, row: "8", col: "A" },
-            B8: { active: true, row: "8", col: "B" },
-            C8: { active: true, row: "8", col: "C" },
-            D8: { active: true, row: "8", col: "D" },
-            E8: { active: true, row: "8", col: "E" },
-            F8: { active: true, row: "8", col: "F" },
-            G8: { active: true, row: "8", col: "G" },
-            H8: { active: true, row: "8", col: "H" },
-            A7: { active: true, row: "7", col: "A" },
-            B7: { active: true, row: "7", col: "B" },
-            C7: { active: true, row: "7", col: "C" },
-            D7: { active: true, row: "7", col: "D" },
-            E7: { active: true, row: "7", col: "E" },
-            F7: { active: true, row: "7", col: "F" },
-            G7: { active: true, row: "7", col: "G" },
-            H7: { active: true, row: "7", col: "H" },
-            A2: { active: true, row: "2", col: "A" },
-            B2: { active: true, row: "2", col: "B" },
-            C2: { active: true, row: "2", col: "C" },
-            D2: { active: true, row: "2", col: "D" },
-            E2: { active: true, row: "2", col: "E" },
-            F2: { active: true, row: "2", col: "F" },
-            G2: { active: true, row: "2", col: "G" },
-            H2: { active: true, row: "2", col: "H" },
-            A1: { active: true, row: "1", col: "A" },
-            B1: { active: true, row: "1", col: "B" },
-            C1: { active: true, row: "1", col: "C" },
-            D1: { active: true, row: "1", col: "D" },
-            E1: { active: true, row: "1", col: "E" },
-            F1: { active: true, row: "1", col: "F" },
-            G1: { active: true, row: "1", col: "G" },
-            H1: { active: true, row: "1", col: "H" },
-        };
-    }
-    static getInitialPieces() {
-        return {
-            A8: new Piece({ id: "A8", player: "BLACK", type: "ROOK" }),
-            B8: new Piece({ id: "B8", player: "BLACK", type: "KNIGHT" }),
-            C8: new Piece({ id: "C8", player: "BLACK", type: "BISHOP" }),
-            D8: new Piece({ id: "D8", player: "BLACK", type: "QUEEN" }),
-            E8: new Piece({ id: "E8", player: "BLACK", type: "KING" }),
-            F8: new Piece({ id: "F8", player: "BLACK", type: "BISHOP" }),
-            G8: new Piece({ id: "G8", player: "BLACK", type: "KNIGHT" }),
-            H8: new Piece({ id: "H8", player: "BLACK", type: "ROOK" }),
-            A7: new Piece({ id: "A7", player: "BLACK", type: "PAWN" }),
-            B7: new Piece({ id: "B7", player: "BLACK", type: "PAWN" }),
-            C7: new Piece({ id: "C7", player: "BLACK", type: "PAWN" }),
-            D7: new Piece({ id: "D7", player: "BLACK", type: "PAWN" }),
-            E7: new Piece({ id: "E7", player: "BLACK", type: "PAWN" }),
-            F7: new Piece({ id: "F7", player: "BLACK", type: "PAWN" }),
-            G7: new Piece({ id: "G7", player: "BLACK", type: "PAWN" }),
-            H7: new Piece({ id: "H7", player: "BLACK", type: "PAWN" }),
-            A2: new Piece({ id: "A2", player: "WHITE", type: "PAWN" }),
-            B2: new Piece({ id: "B2", player: "WHITE", type: "PAWN" }),
-            C2: new Piece({ id: "C2", player: "WHITE", type: "PAWN" }),
-            D2: new Piece({ id: "D2", player: "WHITE", type: "PAWN" }),
-            E2: new Piece({ id: "E2", player: "WHITE", type: "PAWN" }),
-            F2: new Piece({ id: "F2", player: "WHITE", type: "PAWN" }),
-            G2: new Piece({ id: "G2", player: "WHITE", type: "PAWN" }),
-            H2: new Piece({ id: "H2", player: "WHITE", type: "PAWN" }),
-            A1: new Piece({ id: "A1", player: "WHITE", type: "ROOK" }),
-            B1: new Piece({ id: "B1", player: "WHITE", type: "KNIGHT" }),
-            C1: new Piece({ id: "C1", player: "WHITE", type: "BISHOP" }),
-            D1: new Piece({ id: "D1", player: "WHITE", type: "QUEEN" }),
-            E1: new Piece({ id: "E1", player: "WHITE", type: "KING" }),
-            F1: new Piece({ id: "F1", player: "WHITE", type: "BISHOP" }),
-            G1: new Piece({ id: "G1", player: "WHITE", type: "KNIGHT" }),
-            H1: new Piece({ id: "H1", player: "WHITE", type: "ROOK" }),
-        };
-    }
-}
-class Shape {
-    static shape(player, piece) {
-        return `<svg class="${player}" width="170" height="170" viewBox="0 0 170 170" fill="none" xmlns="http://www.w3.org/2000/svg">
-      <use href="#${piece}" />
-    </svg>`;
-    }
-    static shapeBishop(player) {
-        return Shape.shape(player, "bishop");
-    }
-    static shapeKing(player) {
-        return Shape.shape(player, "king");
-    }
-    static shapeKnight(player) {
-        return Shape.shape(player, "knight");
-    }
-    static shapePawn(player) {
-        return Shape.shape(player, "pawn");
-    }
-    static shapeQueen(player) {
-        return Shape.shape(player, "queen");
-    }
-    static shapeRook(player) {
-        return Shape.shape(player, "rook");
-    }
-}
-class Constraints {
-    static generate(args, resultingChecks) {
-        let method;
-        const { piecePositions, piece } = args;
-        if (piecePositions[piece.data.id].active) {
-            switch (piece.data.type) {
-                case "BISHOP":
-                    method = Constraints.constraintsBishop;
-                    break;
-                case "KING":
-                    method = Constraints.constraintsKing;
-                    break;
-                case "KNIGHT":
-                    method = Constraints.constraintsKnight;
-                    break;
-                case "PAWN":
-                    method = Constraints.constraintsPawn;
-                    break;
-                case "QUEEN":
-                    method = Constraints.constraintsQueen;
-                    break;
-                case "ROOK":
-                    method = Constraints.constraintsRook;
-                    break;
-            }
-        }
-        const result = method ? method(args) : { moves: [], captures: [] };
-        if (resultingChecks) {
-            const moveIndex = args.moveIndex + 1;
-            result.moves = result.moves.filter((location) => !resultingChecks({ piece, location, capture: false, moveIndex }).length);
-            result.captures = result.captures.filter((location) => !resultingChecks({ piece, location, capture: true, moveIndex }).length);
-        }
-        return result;
-    }
-    static constraintsBishop(args) {
-        return Constraints.constraintsDiagonal(args);
-    }
-    static constraintsDiagonal(args) {
-        const response = { moves: [], captures: [] };
-        const { piece } = args;
-        Constraints.runUntil(piece.dirNW.bind(piece), response, args);
-        Constraints.runUntil(piece.dirNE.bind(piece), response, args);
-        Constraints.runUntil(piece.dirSW.bind(piece), response, args);
-        Constraints.runUntil(piece.dirSE.bind(piece), response, args);
-        return response;
-    }
-    static constraintsKing(args) {
-        const { piece, kingCastles, piecePositions } = args;
-        const moves = [];
-        const captures = [];
-        const locations = [
-            piece.dirN(1, piecePositions),
-            piece.dirNE(1, piecePositions),
-            piece.dirE(1, piecePositions),
-            piece.dirSE(1, piecePositions),
-            piece.dirS(1, piecePositions),
-            piece.dirSW(1, piecePositions),
-            piece.dirW(1, piecePositions),
-            piece.dirNW(1, piecePositions),
-        ];
-        if (kingCastles) {
-            const castles = kingCastles(piece);
-            castles.forEach((position) => moves.push(position));
-        }
-        locations.forEach((location) => {
-            const value = Constraints.relationshipToTile(location, args);
-            if (value === "BLANK") {
-                moves.push(location);
-            }
-            else if (value === "ENEMY") {
-                captures.push(location);
-            }
-        });
-        return { moves, captures };
-    }
-    static constraintsKnight(args) {
-        const { piece, piecePositions } = args;
-        const moves = [];
-        const captures = [];
-        const locations = [
-            piece.dir(1, 2, piecePositions),
-            piece.dir(1, -2, piecePositions),
-            piece.dir(2, 1, piecePositions),
-            piece.dir(2, -1, piecePositions),
-            piece.dir(-1, 2, piecePositions),
-            piece.dir(-1, -2, piecePositions),
-            piece.dir(-2, 1, piecePositions),
-            piece.dir(-2, -1, piecePositions),
-        ];
-        locations.forEach((location) => {
-            const value = Constraints.relationshipToTile(location, args);
-            if (value === "BLANK") {
-                moves.push(location);
-            }
-            else if (value === "ENEMY") {
-                captures.push(location);
-            }
-        });
-        return { moves, captures };
-    }
-    static constraintsOrthangonal(args) {
-        const { piece } = args;
-        const response = { moves: [], captures: [] };
-        Constraints.runUntil(piece.dirN.bind(piece), response, args);
-        Constraints.runUntil(piece.dirE.bind(piece), response, args);
-        Constraints.runUntil(piece.dirS.bind(piece), response, args);
-        Constraints.runUntil(piece.dirW.bind(piece), response, args);
-        return response;
-    }
-    static constraintsPawn(args) {
-        const { piece, piecePositions } = args;
-        const moves = [];
-        const captures = [];
-        const locationN1 = piece.dirN(1, piecePositions);
-        const locationN2 = piece.dirN(2, piecePositions);
-        if (Constraints.relationshipToTile(locationN1, args) === "BLANK") {
-            moves.push(locationN1);
-            if (!piece.moves.length && Constraints.relationshipToTile(locationN2, args) === "BLANK") {
-                moves.push(locationN2);
-            }
-        }
-        [
-            [piece.dirNW(1, piecePositions), piece.dirW(1, piecePositions)],
-            [piece.dirNE(1, piecePositions), piece.dirE(1, piecePositions)],
-        ].forEach(([location, enPassant]) => {
-            const standardCaptureRelationship = Constraints.relationshipToTile(location, args);
-            const enPassantCaptureRelationship = Constraints.relationshipToTile(enPassant, args);
-            if (standardCaptureRelationship === "ENEMY") {
-                captures.push(location);
-            }
-            else if (piece.moves.length > 0 && enPassantCaptureRelationship === "ENEMY") {
-                const enPassantRow = enPassant.row === (piece.playerWhite() ? "5" : "4");
-                const other = Constraints.locationToPiece(enPassant, args);
-                if (enPassantRow && other && other.data.type === "PAWN") {
-                    if (other.moves.length === 1 && other.moves[0] === args.moveIndex - 1) {
-                        location.capture = Object.assign({}, enPassant);
-                        captures.push(location);
-                    }
-                }
-            }
-        });
-        return { moves, captures };
-    }
-    static constraintsQueen(args) {
-        const diagonal = Constraints.constraintsDiagonal(args);
-        const orthagonal = Constraints.constraintsOrthangonal(args);
-        return {
-            moves: diagonal.moves.concat(orthagonal.moves),
-            captures: diagonal.captures.concat(orthagonal.captures),
-        };
-    }
-    static constraintsRook(args) {
-        return Constraints.constraintsOrthangonal(args);
-    }
-    static locationToPiece(location, args) {
-        if (!location) {
-            return undefined;
-        }
-        const { state, pieces } = args;
-        const row = state[location.row];
-        const occupyingId = row === undefined ? undefined : row[location.col];
-        return pieces[occupyingId];
-    }
-    static relationshipToTile(location, args) {
-        if (!location) {
-            return undefined;
-        }
-        const { piece } = args;
-        const occupying = Constraints.locationToPiece(location, args);
-        if (occupying) {
-            return occupying.data.player === piece.data.player ? "FRIEND" : "ENEMY";
-        }
-        else {
-            return "BLANK";
-        }
-    }
-    static runUntil(locationFunction, response, args) {
-        const { piecePositions } = args;
-        let inc = 1;
-        let location = locationFunction(inc++, piecePositions);
-        while (location) {
-            let abort = false;
-            const relations = Constraints.relationshipToTile(location, args);
-            if (relations === "ENEMY") {
-                response.captures.push(location);
-                abort = true;
-            }
-            else if (relations === "FRIEND") {
-                abort = true;
-            }
-            else {
-                response.moves.push(location);
-            }
-            if (abort) {
-                location = undefined;
-            }
-            else {
-                location = locationFunction(inc++, piecePositions);
-            }
-        }
-    }
-}
-class Piece {
-    constructor(data) {
-        this.moves = [];
-        this.promoted = false;
-        this.updateShape = false;
-        this.data = data;
-    }
-    get orientation() {
-        return this.data.player === "BLACK" ? -1 : 1;
-    }
-    dirN(steps, positions) {
-        return this.dir(steps, 0, positions);
-    }
-    dirS(steps, positions) {
-        return this.dir(-steps, 0, positions);
-    }
-    dirW(steps, positions) {
-        return this.dir(0, -steps, positions);
-    }
-    dirE(steps, positions) {
-        return this.dir(0, steps, positions);
-    }
-    dirNW(steps, positions) {
-        return this.dir(steps, -steps, positions);
-    }
-    dirNE(steps, positions) {
-        return this.dir(steps, steps, positions);
-    }
-    dirSW(steps, positions) {
-        return this.dir(-steps, -steps, positions);
-    }
-    dirSE(steps, positions) {
-        return this.dir(-steps, steps, positions);
-    }
-    dir(stepsRow, stepsColumn, positions) {
-        PIECE_DIR_CALC++;
-        const row = Utils.rowToInt(positions[this.data.id].row) + this.orientation * stepsRow;
-        const col = Utils.colToInt(positions[this.data.id].col) + this.orientation * stepsColumn;
-        if (row >= 0 && row <= 7 && col >= 0 && col <= 7) {
-            return { row: Utils.intToRow(row), col: Utils.intToCol(col) };
-        }
-        return undefined;
-    }
-    move(moveIndex) {
-        this.moves.push(moveIndex);
-    }
-    options(moveIndex, state, pieces, piecePositions, resultingChecks, kingCastles) {
-        return Constraints.generate({ moveIndex, state, piece: this, pieces, piecePositions, kingCastles }, resultingChecks);
-    }
-    playerBlack() {
-        return this.data.player === "BLACK";
-    }
-    playerWhite() {
-        return this.data.player === "WHITE";
-    }
-    promote(type = "QUEEN") {
-        this.data.type = type;
-        this.promoted = true;
-        this.updateShape = true;
-    }
-    shape() {
-        const player = this.data.player.toLowerCase();
-        switch (this.data.type) {
-            case "BISHOP":
-                return Shape.shapeBishop(player);
-            case "KING":
-                return Shape.shapeKing(player);
-            case "KNIGHT":
-                return Shape.shapeKnight(player);
-            case "PAWN":
-                return Shape.shapePawn(player);
-            case "QUEEN":
-                return Shape.shapeQueen(player);
-            case "ROOK":
-                return Shape.shapeRook(player);
-        }
-    }
-}
-class Board {
-    constructor(pieces, piecePositions) {
-        this.checksBlack = [];
-        this.checksWhite = [];
-        this.piecesTilesCaptures = {};
-        this.piecesTilesMoves = {};
-        this.tilesPiecesBlackCaptures = Utils.getInitialBoardState(() => []);
-        this.tilesPiecesBlackMoves = Utils.getInitialBoardState(() => []);
-        this.tilesPiecesWhiteCaptures = Utils.getInitialBoardState(() => []);
-        this.tilesPiecesWhiteMoves = Utils.getInitialBoardState(() => []);
-        this.pieceIdsBlack = [];
-        this.pieceIdsWhite = [];
-        this.state = Utils.getInitialBoardState();
-        this.pieces = pieces;
-        for (let id in pieces) {
-            if (pieces[id].playerWhite()) {
-                this.pieceIdsWhite.push(id);
-            }
-            else {
-                this.pieceIdsBlack.push(id);
-            }
-        }
-        this.initializePositions(piecePositions);
-    }
-    initializePositions(piecePositions) {
-        this.piecePositions = piecePositions;
-        this.initializeState();
-        this.piecesUpdate(0);
-    }
-    initializeState() {
-        for (let pieceId in this.pieces) {
-            const { row, col, active, _moves, _promoted } = this.piecePositions[pieceId];
-            if (_moves) {
-                delete this.piecePositions[pieceId]._moves;
-                // TODO: come back to this
-                // this.pieces[pieceId].moves = new Array(_moves);
-            }
-            if (_promoted) {
-                delete this.piecePositions[pieceId]._promoted;
-                this.pieces[pieceId].promote();
-            }
-            if (active) {
-                this.state[row] = this.state[row] || [];
-                this.state[row][col] = pieceId;
-            }
-        }
-    }
-    kingCastles(king) {
-        const castles = [];
-        // king has to not have moved
-        if (king.moves.length) {
-            return castles;
-        }
-        const kingIsWhite = king.playerWhite();
-        const moves = kingIsWhite ? this.tilesPiecesBlackMoves : this.tilesPiecesWhiteMoves;
-        const checkPositions = (row, rookCol, castles) => {
-            const cols = rookCol === "A" ? ["D", "C", "B"] : ["F", "G"];
-            // rook has to not have moved
-            const rookId = `${rookCol}${row}`;
-            const rook = this.pieces[rookId];
-            const { active } = this.piecePositions[rookId];
-            if (active && rook.moves.length === 0) {
-                let canCastle = true;
-                cols.forEach((col) => {
-                    // each tile has to be empty
-                    if (this.state[row][col]) {
-                        canCastle = false;
-                        // each tile cant be in the path of the other team
-                    }
-                    else if (moves[row][col].length) {
-                        canCastle = false;
-                    }
-                });
-                if (canCastle) {
-                    castles.push({ col: cols[1], row, castles: rookCol });
-                }
-            }
-        };
-        const row = kingIsWhite ? "1" : "8";
-        if (!this.pieces[`A${row}`].moves.length) {
-            checkPositions(row, "A", castles);
-        }
-        if (!this.pieces[`H${row}`].moves.length) {
-            checkPositions(row, "H", castles);
-        }
-        return castles;
-    }
-    kingCheckStates(kingPosition, captures, piecePositions) {
-        const { col, row } = kingPosition;
-        return captures[row][col].map((id) => piecePositions[id]).filter((pos) => pos.active);
-    }
-    pieceCalculateMoves(pieceId, moveIndex, state, piecePositions, piecesTilesCaptures, piecesTilesMoves, tilesPiecesCaptures, tilesPiecesMoves, resultingChecks, kingCastles) {
-        const { captures, moves } = this.pieces[pieceId].options(moveIndex, state, this.pieces, piecePositions, resultingChecks, kingCastles);
-        piecesTilesCaptures[pieceId] = Array.from(captures);
-        piecesTilesMoves[pieceId] = Array.from(moves);
-        captures.forEach(({ col, row }) => tilesPiecesCaptures[row][col].push(pieceId));
-        moves.forEach(({ col, row }) => tilesPiecesMoves[row][col].push(pieceId));
-    }
-    pieceCapture(piece) {
-        const pieceId = piece.data.id;
-        const { col, row } = this.piecePositions[pieceId];
-        this.state[row][col] = undefined;
-        delete this.piecePositions[pieceId].col;
-        delete this.piecePositions[pieceId].row;
-        this.piecePositions[pieceId].active = false;
-    }
-    pieceMove(piece, location) {
-        const pieceId = piece.data.id;
-        const { row, col } = this.piecePositions[pieceId];
-        this.state[row][col] = undefined;
-        this.state[location.row][location.col] = pieceId;
-        this.piecePositions[pieceId].row = location.row;
-        this.piecePositions[pieceId].col = location.col;
-        if (piece.data.type === "PAWN" && (location.row === "8" || location.row === "1")) {
-            piece.promote();
-        }
-    }
-    piecesUpdate(moveIndex) {
-        this.tilesPiecesBlackCaptures = Utils.getInitialBoardState(() => []);
-        this.tilesPiecesBlackMoves = Utils.getInitialBoardState(() => []);
-        this.tilesPiecesWhiteCaptures = Utils.getInitialBoardState(() => []);
-        this.tilesPiecesWhiteMoves = Utils.getInitialBoardState(() => []);
-        this.pieceIdsBlack.forEach((id) => this.pieceCalculateMoves(id, moveIndex, this.state, this.piecePositions, this.piecesTilesCaptures, this.piecesTilesMoves, this.tilesPiecesBlackCaptures, this.tilesPiecesBlackMoves, this.resultingChecks.bind(this), this.kingCastles.bind(this)));
-        this.pieceIdsWhite.forEach((id) => this.pieceCalculateMoves(id, moveIndex, this.state, this.piecePositions, this.piecesTilesCaptures, this.piecesTilesMoves, this.tilesPiecesWhiteCaptures, this.tilesPiecesWhiteMoves, this.resultingChecks.bind(this), this.kingCastles.bind(this)));
-        this.checksBlack = this.kingCheckStates(this.piecePositions.E1, this.tilesPiecesBlackCaptures, this.piecePositions);
-        this.checksWhite = this.kingCheckStates(this.piecePositions.E8, this.tilesPiecesWhiteCaptures, this.piecePositions);
-    }
-    resultingChecks({ piece, location, capture, moveIndex }) {
-        const tilesPiecesCaptures = Utils.getInitialBoardState(() => []);
-        const tilesPiecesMoves = Utils.getInitialBoardState(() => []);
-        const piecesTilesCaptures = {};
-        const piecesTilesMoves = {};
-        const state = JSON.parse(JSON.stringify(this.state));
-        const piecePositions = JSON.parse(JSON.stringify(this.piecePositions));
-        if (capture) {
-            const loc = location.capture || location;
-            const capturedId = state[loc.row][loc.col];
-            if (this.pieces[capturedId].data.type === "KING") {
-                // this is a checking move
-            }
-            else {
-                delete piecePositions[capturedId].col;
-                delete piecePositions[capturedId].row;
-                piecePositions[capturedId].active = false;
-            }
-        }
-        const pieceId = piece.data.id;
-        const { row, col } = piecePositions[pieceId];
-        state[row][col] = undefined;
-        state[location.row][location.col] = pieceId;
-        piecePositions[pieceId].row = location.row;
-        piecePositions[pieceId].col = location.col;
-        const ids = piece.playerWhite() ? this.pieceIdsBlack : this.pieceIdsWhite;
-        const king = piece.playerWhite() ? piecePositions.E1 : piecePositions.E8;
-        ids.forEach((id) => this.pieceCalculateMoves(id, moveIndex, state, piecePositions, piecesTilesCaptures, piecesTilesMoves, tilesPiecesCaptures, tilesPiecesMoves));
-        return this.kingCheckStates(king, tilesPiecesCaptures, piecePositions);
-    }
-    tileEach(callback) {
-        Board.ROWS.forEach((row) => {
-            Board.COLS.forEach((col) => {
-                const piece = this.tileFind({ row, col });
-                const moves = piece ? this.piecesTilesMoves[piece.data.id] : undefined;
-                const captures = piece ? this.piecesTilesCaptures[piece.data.id] : undefined;
-                callback({ row, col }, piece, moves, captures);
-            });
-        });
-    }
-    tileFind({ row, col }) {
-        const id = this.state[row][col];
-        return this.pieces[id];
-    }
-    toShortCode() {
-        const positionsAbsolute = [];
-        const positionsDefaults = [];
-        for (let id in this.piecePositions) {
-            const { active, col, row } = this.piecePositions[id];
-            const pos = `${col}${row}`;
-            const moves = this.pieces[id].moves;
-            const promotedCode = this.pieces[id].promoted ? "P" : "";
-            const movesCode = moves > 9 ? "9" : moves > 1 ? moves.toString() : "";
-            if (active) {
-                positionsAbsolute.push(`${promotedCode}${id}${id === pos ? "" : pos}${movesCode}`);
-                if (id !== pos || moves > 0) {
-                    positionsDefaults.push(`${promotedCode}${id}${pos}${movesCode}`);
-                }
-            }
-            else {
-                if (id !== "BQ" && id !== "WQ") {
-                    positionsDefaults.push(`${promotedCode}${id}X`);
-                }
-            }
-        }
-        const pA = positionsAbsolute.join(",");
-        const pD = positionsDefaults.join(",");
-        return pA.length > pD.length ? `X${pD}` : pA;
-    }
-}
-Board.COLS = ["A", "B", "C", "D", "E", "F", "G", "H"];
-Board.ROWS = ["1", "2", "3", "4", "5", "6", "7", "8"];
-class Game {
-    constructor(pieces, piecePositions, turn = "WHITE") {
-        this.active = null;
-        this.activePieceOptions = [];
-        this.moveIndex = 0;
-        this.moves = [];
-        this.turn = turn;
-        this.board = new Board(pieces, piecePositions);
-    }
-    activate(location) {
-        const tilePiece = this.board.tileFind(location);
-        if (tilePiece && !this.active && tilePiece.data.player !== this.turn) {
-            this.active = null;
-            return { type: "INVALID" };
-            // a piece is active rn
-        }
-        else if (this.active) {
-            const activePieceId = this.active.data.id;
-            this.active = null;
-            const validatedPosition = this.activePieceOptions.find((option) => option.col === location.col && option.row === location.row);
-            const positionIsValid = !!validatedPosition;
-            this.activePieceOptions = [];
-            const capturePiece = (validatedPosition === null || validatedPosition === void 0 ? void 0 : validatedPosition.capture) ? this.board.tileFind(validatedPosition.capture) : tilePiece;
-            // a piece is on the tile
-            if (capturePiece) {
-                const capturedPieceId = capturePiece.data.id;
-                // cancelling the selected piece on invalid location
-                if (capturedPieceId === activePieceId) {
-                    return { type: "CANCEL" };
-                }
-                else if (positionIsValid) {
-                    // capturing the selected piece
-                    this.capture(activePieceId, capturedPieceId, location);
-                    return {
-                        type: "CAPTURE",
-                        activePieceId,
-                        capturedPieceId,
-                        captures: [location],
-                    };
-                    // cancel
-                }
-                else if (capturePiece.data.player !== this.turn) {
-                    return { type: "CANCEL" };
-                }
-                else {
-                    // proceed to TOUCH or CANCEL
-                }
-            }
-            else if (positionIsValid) {
-                // moving will return castled if that happens (only two move)
-                const castledId = this.move(activePieceId, location);
-                return { type: "MOVE", activePieceId, moves: [location], castledId };
-                // invalid spot. cancel.
-            }
-            else {
-                return { type: "CANCEL" };
-            }
-        }
-        // no piece selected or new CANCEL + TOUCH
-        if (tilePiece) {
-            const tilePieceId = tilePiece.data.id;
-            const moves = this.board.piecesTilesMoves[tilePieceId];
-            const captures = this.board.piecesTilesCaptures[tilePieceId];
-            if (!moves.length && !captures.length) {
-                return { type: "INVALID" };
-            }
-            this.active = tilePiece;
-            this.activePieceOptions = moves.concat(captures);
-            return { type: "TOUCH", captures, moves, activePieceId: tilePieceId };
-            // cancelling
-        }
-        else {
-            this.activePieceOptions = [];
-            return { type: "CANCEL" };
-        }
-    }
-    capture(capturingPieceId, capturedPieceId, location) {
-        const captured = this.board.pieces[capturedPieceId];
-        this.board.pieceCapture(captured);
-        this.move(capturingPieceId, location, true);
-    }
-    handleCastling(piece, location) {
-        if (piece.data.type !== "KING" ||
-            piece.moves.length ||
-            location.row !== (piece.playerWhite() ? "1" : "8") ||
-            (location.col !== "C" && location.col !== "G")) {
-            return;
-        }
-        return `${location.col === "C" ? "A" : "H"}${location.row}`;
-    }
-    move(pieceId, location, capture = false) {
-        const piece = this.board.pieces[pieceId];
-        const castledId = this.handleCastling(piece, location);
-        piece.move(this.moveIndex);
-        if (castledId) {
-            const castled = this.board.pieces[castledId];
-            castled.move(this.moveIndex);
-            this.board.pieceMove(castled, { col: location.col === "C" ? "D" : "F", row: location.row });
-            this.moves.push(`${pieceId}O${location.col}${location.row}`);
-        }
-        else {
-            this.moves.push(`${pieceId}${capture ? "x" : ""}${location.col}${location.row}`);
-        }
-        this.moveIndex++;
-        this.board.pieceMove(piece, location);
-        this.turn = this.turn === "WHITE" ? "BLACK" : "WHITE";
-        this.board.piecesUpdate(this.moveIndex);
-        const state = this.moveResultState();
-        if (!state.moves && !state.captures) {
-            alert(state.stalemate ? "Stalemate!" : `${this.turn === "WHITE" ? "Black" : "White"} Wins!`);
-        }
-        return castledId;
-    }
-    moveResultState() {
-        let movesWhite = 0;
-        let capturesWhite = 0;
-        let movesBlack = 0;
-        let capturesBlack = 0;
-        this.board.tileEach(({ row, col }) => {
-            movesWhite += this.board.tilesPiecesWhiteMoves[row][col].length;
-            capturesWhite += this.board.tilesPiecesWhiteCaptures[row][col].length;
-            movesBlack += this.board.tilesPiecesBlackMoves[row][col].length;
-            capturesBlack += this.board.tilesPiecesBlackCaptures[row][col].length;
-        });
-        const activeBlack = this.board.pieceIdsBlack.filter((pieceId) => this.board.piecePositions[pieceId].active).length;
-        const activeWhite = this.board.pieceIdsWhite.filter((pieceId) => this.board.piecePositions[pieceId].active).length;
-        const moves = this.turn === "WHITE" ? movesWhite : movesBlack;
-        const captures = this.turn === "WHITE" ? capturesWhite : capturesBlack;
-        const noMoves = movesWhite + capturesWhite + movesBlack + capturesBlack === 0;
-        const checked = !!this.board[this.turn === "WHITE" ? "checksBlack" : "checksWhite"].length;
-        const onlyKings = activeBlack === 1 && activeWhite === 1;
-        const stalemate = onlyKings || noMoves || ((moves + captures === 0) && !checked);
-        const code = this.board.toShortCode();
-        return { turn: this.turn, checked, moves, captures, code, stalemate };
-    }
-    randomMove() {
-        if (this.active) {
-            if (this.activePieceOptions.length) {
-                const { col, row } = this.activePieceOptions[Math.floor(Math.random() * this.activePieceOptions.length)];
-                return { col, row };
-            }
-            else {
-                const { col, row } = this.board.piecePositions[this.active.data.id];
-                return { col, row };
-            }
-        }
-        else {
-            const ids = this.turn === "WHITE" ? this.board.pieceIdsWhite : this.board.pieceIdsBlack;
-            const positions = ids.map((pieceId) => {
-                const moves = this.board.piecesTilesMoves[pieceId];
-                const captures = this.board.piecesTilesCaptures[pieceId];
-                return (moves.length || captures.length) ? this.board.piecePositions[pieceId] : undefined;
-            }).filter((position) => position === null || position === void 0 ? void 0 : position.active);
-            const remaining = positions[Math.floor(Math.random() * positions.length)];
-            const { col, row } = remaining || { col: "E", row: "1" };
-            return { col, row };
-        }
-    }
-}
-class View {
-    constructor(element, game, perspective) {
-        this.element = element;
-        this.game = game;
-        this.setPerspective(perspective || this.game.turn);
-        this.tiles = Utils.getInitialBoardTiles(this.element, this.handleTileClick.bind(this));
-        this.pieces = Utils.getInitialBoardPieces(this.element, this.game.board.pieces);
-        this.drawPiecePositions();
-    }
-    drawActivePiece(activePieceId) {
-        const { row, col } = this.game.board.piecePositions[activePieceId];
-        this.tiles[row][col].classList.add("highlight-active");
-        this.pieces[activePieceId].classList.add("highlight-active");
-    }
-    drawCapturedPiece(capturedPieceId) {
-        const piece = this.pieces[capturedPieceId];
-        piece.style.setProperty("--transition-delay", "var(--transition-duration)");
-        piece.style.removeProperty("--pos-col");
-        piece.style.removeProperty("--pos-row");
-        piece.style.setProperty("--scale", "0");
-    }
-    drawPiecePositions(moves = [], moveInner = "") {
-        document.body.style.setProperty("--color-background", `var(--color-${this.game.turn.toLowerCase()}`);
-        const other = this.game.turn === "WHITE" ? "turn-black" : "turn-white";
-        const current = this.game.turn === "WHITE" ? "turn-white" : "turn-black";
-        this.element.classList.add(current);
-        this.element.classList.remove(other);
-        if (moves.length) {
-            this.element.classList.add("touching");
-        }
-        else {
-            this.element.classList.remove("touching");
-        }
-        const key = (row, col) => `${row}-${col}`;
-        const moveKeys = moves.map(({ row, col }) => key(row, col));
-        this.game.board.tileEach(({ row, col }, piece, pieceMoves, pieceCaptures) => {
-            const tileElement = this.tiles[row][col];
-            const move = moveKeys.includes(key(row, col)) ? moveInner : "";
-            const format = (id, className) => this.game.board.pieces[id].shape();
-            tileElement.innerHTML = `
-        <div class="move">${move}</div>
-        <div class="moves">
-          ${this.game.board.tilesPiecesBlackMoves[row][col].map((id) => format(id, "black")).join("")}
-          ${this.game.board.tilesPiecesWhiteMoves[row][col].map((id) => format(id, "white")).join("")}
-        </div>
-        <div class="captures">
-          ${this.game.board.tilesPiecesBlackCaptures[row][col].map((id) => format(id, "black")).join("")}
-          ${this.game.board.tilesPiecesWhiteCaptures[row][col].map((id) => format(id, "white")).join("")}
-        </div>
-      `;
-            if (piece) {
-                tileElement.classList.add("occupied");
-                const pieceElement = this.pieces[piece.data.id];
-                pieceElement.style.setProperty("--pos-col", Utils.colToInt(col).toString());
-                pieceElement.style.setProperty("--pos-row", Utils.rowToInt(row).toString());
-                pieceElement.style.setProperty("--scale", "1");
-                pieceElement.classList[(pieceMoves === null || pieceMoves === void 0 ? void 0 : pieceMoves.length) ? "add" : "remove"]("can-move");
-                pieceElement.classList[(pieceCaptures === null || pieceCaptures === void 0 ? void 0 : pieceCaptures.length) ? "add" : "remove"]("can-capture");
-                if (piece.updateShape) {
-                    piece.updateShape = false;
-                    pieceElement.innerHTML = piece.shape();
-                }
-            }
-            else {
-                tileElement.classList.remove("occupied");
-            }
-        });
-    }
-    drawPositions(moves, captures) {
-        moves === null || moves === void 0 ? void 0 : moves.forEach(({ row, col }) => {
-            var _a, _b;
-            this.tiles[row][col].classList.add("highlight-move");
-            (_b = this.pieces[(_a = this.game.board.tileFind({ row, col })) === null || _a === void 0 ? void 0 : _a.data.id]) === null || _b === void 0 ? void 0 : _b.classList.add("highlight-move");
-        });
-        captures === null || captures === void 0 ? void 0 : captures.forEach(({ row, col, capture }) => {
-            var _a, _b;
-            if (capture) {
-                row = capture.row;
-                col = capture.col;
-            }
-            this.tiles[row][col].classList.add("highlight-capture");
-            (_b = this.pieces[(_a = this.game.board.tileFind({ row, col })) === null || _a === void 0 ? void 0 : _a.data.id]) === null || _b === void 0 ? void 0 : _b.classList.add("highlight-capture");
-        });
-    }
-    drawResetClassNames() {
-        document.querySelectorAll(".highlight-active").forEach((element) => element.classList.remove("highlight-active"));
-        document.querySelectorAll(".highlight-capture").forEach((element) => element.classList.remove("highlight-capture"));
-        document.querySelectorAll(".highlight-move").forEach((element) => element.classList.remove("highlight-move"));
-    }
-    handleTileClick(location) {
-        const { activePieceId, capturedPieceId, moves = [], captures = [], type } = this.game.activate(location);
-        this.drawResetClassNames();
-        if (type === "TOUCH") {
-            const enPassant = captures.find((capture) => !!capture.capture);
-            const passingMoves = enPassant ? moves.concat([enPassant]) : moves;
-            this.drawPiecePositions(passingMoves, this.game.board.pieces[activePieceId].shape());
-        }
-        else {
-            this.drawPiecePositions();
-        }
-        if (type === "CANCEL" || type === "INVALID") {
-            return;
-        }
-        if (type === "MOVE" || type === "CAPTURE") {
-        }
-        else {
-            this.drawActivePiece(activePieceId);
-        }
-        if (type === "TOUCH") {
-            this.drawPositions(moves, captures);
-        }
-        else if (type === "CAPTURE") {
-            this.drawCapturedPiece(capturedPieceId);
-        }
-        // crazy town
-        // this.setPerspective(this.game.turn);
-    }
-    setPerspective(perspective) {
-        const other = perspective === "WHITE" ? "perspective-black" : "perspective-white";
-        const current = perspective === "WHITE" ? "perspective-white" : "perspective-black";
-        this.element.classList.add(current);
-        this.element.classList.remove(other);
-    }
-}
-class Control {
-    constructor(game, view) {
-        this.inputSpeedAsap = document.getElementById("speed-asap");
-        this.inputSpeedFast = document.getElementById("speed-fast");
-        this.inputSpeedMedium = document.getElementById("speed-medium");
-        this.inputSpeedSlow = document.getElementById("speed-slow");
-        this.inputRandomBlack = document.getElementById("black-random");
-        this.inputRandomWhite = document.getElementById("white-random");
-        this.inputPerspectiveBlack = document.getElementById("black-perspective");
-        this.inputPerspectiveWhite = document.getElementById("white-perspective");
-        this.game = game;
-        this.view = view;
-        this.inputPerspectiveBlack.addEventListener("change", this.updateViewPerspective.bind(this));
-        this.inputPerspectiveWhite.addEventListener("change", this.updateViewPerspective.bind(this));
-        this.updateViewPerspective();
-    }
-    get speed() {
-        if (this.inputSpeedAsap.checked) {
-            return 50;
-        }
-        if (this.inputSpeedFast.checked) {
-            return 250;
-        }
-        if (this.inputSpeedMedium.checked) {
-            return 500;
-        }
-        if (this.inputSpeedSlow.checked) {
-            return 1000;
-        }
-    }
-    autoplay() {
-        const input = this.game.turn === "WHITE" ? this.inputRandomWhite : this.inputRandomBlack;
-        if (!input.checked) {
-            setTimeout(this.autoplay.bind(this), this.speed);
-            return;
-        }
-        const position = this.game.randomMove();
-        this.view.handleTileClick(position);
-        setTimeout(this.autoplay.bind(this), this.speed);
-    }
-    updateViewPerspective() {
-        this.view.setPerspective(this.inputPerspectiveBlack.checked ? "BLACK" : "WHITE");
-    }
-}
-const DEMOS = {
-    castle1: "XD8B3,B1X,C1X,D1X,F1X,G1X",
-    castle2: "XD8B3,B1X,C1X,C2X,D1X,F1X,G1X",
-    castle3: "XD8E3,B1X,C1X,F2X,D1X,F1X,G1X",
-    promote1: "E1,E8,C2C7",
-    promote2: "E1,E8E7,PC2C8",
-    start: "XE7E6,F7F5,D2D4,E2E5",
-    test2: "C8E2,E8,G8H1,D7E4,H7H3,PA2H7,PB2G7,D2D6,E2E39,A1H2,E1B3",
-    test: "C8E2,E8,G8H1,D7E4,H7H3,D1H7,PB2G7,D2D6,E2E39,A1H2,E1B3",
-};
-const initialPositions = Utils.getInitialPiecePositions();
-// const initialPositions = Utils.getPositionsFromShortCode(DEMOS.castle1);
-const initialTurn = "WHITE";
-const perspective = "WHITE";
-const game = new Game(Utils.getInitialPieces(), initialPositions, initialTurn);
-const view = new View(document.getElementById("board"), game, perspective);
-const control = new Control(game, view);
-control.autoplay();
+/* Chess AI - board, controls and computer opponent (UI side). */
+(function () {
+  "use strict";
+  var E = createChessEngine();
+  var Position = E.Position;
+  var STORE = "chess-ai:";
+  var NAMES = ["", "pawn", "knight", "bishop", "rook", "queen", "king"];
+  var START_COUNTS = [0, 8, 2, 2, 2, 1, 1];
+
+  // ---------- Storage ----------
+  function load(key, fallback) {
+    try {
+      var v = window.localStorage.getItem(STORE + key);
+      return v ? JSON.parse(v) : fallback;
+    } catch (e) { return fallback; }
+  }
+  function save(key, value) {
+    try { window.localStorage.setItem(STORE + key, JSON.stringify(value)); } catch (e) { /* storage unavailable */ }
+  }
+
+  var DEFAULTS = { mode: "white", level: "easy", speed: "2", hints: "on", flip: false };
+  var ALLOWED = {
+    mode: ["white", "black", "both", "watch"],
+    level: ["random", "easy", "medium", "hard"],
+    speed: ["1", "2", "4", "20"],
+    hints: ["on", "off"]
+  };
+  var settings = Object.assign({}, DEFAULTS, load("settings", {}));
+  Object.keys(ALLOWED).forEach(function (k) { if (ALLOWED[k].indexOf(settings[k]) < 0) settings[k] = DEFAULTS[k]; });
+  settings.flip = !!settings.flip;
+
+  // ---------- DOM ----------
+  function $(id) { return document.getElementById(id); }
+  var app = $("app"), boardEl = $("board"), squaresEl = $("squares"), piecesEl = $("pieces");
+  var promoEl = $("promo"), resultEl = $("result"), panel = $("panel"), movesEl = $("moves");
+  var statusCard = $("status-card"), statusEl = $("status"), subEl = $("substatus"), dotEl = $("turn-dot"), thinkingEl = $("thinking");
+  var btnNew = $("btn-new"), btnUndo = $("btn-undo"), btnFlip = $("btn-flip"), btnSettings = $("btn-settings");
+  var scrim = $("scrim");
+
+  // ---------- Game state ----------
+  var pos, history, keys, legal, gameOver, selected = -1, lastMove = 0;
+  var pieceEls = {};
+  var squareEls = [];
+  var thinkToken = 0, aiTimer = 0, aiBusy = false;
+  var drag = null, pendingPromo = null, resultDismissed = false;
+
+  function isAI(side) {
+    var m = settings.mode;
+    return m === "watch" || (m === "white" && side === -1) || (m === "black" && side === 1);
+  }
+  function sideName(side) { return side === 1 ? "White" : "Black"; }
+  function uci(m) {
+    var p = E.mPromo(m);
+    return E.sqName(E.mFrom(m)) + E.sqName(E.mTo(m)) + (p ? " pnbrq".charAt(p) : "");
+  }
+
+  // ---------- Geometry ----------
+  function sqToXY(sq) {
+    var r = sq >> 4, f = sq & 7;
+    return settings.flip ? { x: 7 - f, y: r } : { x: f, y: 7 - r };
+  }
+  function xyToSq(x, y) {
+    return settings.flip ? y * 16 + (7 - x) : (7 - y) * 16 + x;
+  }
+  function eventSq(e) {
+    var r = boardEl.getBoundingClientRect();
+    var x = Math.floor((e.clientX - r.left) / r.width * 8);
+    var y = Math.floor((e.clientY - r.top) / r.height * 8);
+    if (x < 0 || y < 0 || x > 7 || y > 7) return -1;
+    return xyToSq(x, y);
+  }
+
+  function pieceSVG(v) {
+    var cls = v > 0 ? "white" : "black";
+    return '<svg class="' + cls + '" viewBox="0 0 170 170" aria-hidden="true"><use href="#' + NAMES[Math.abs(v)] + '"/></svg>';
+  }
+
+  // ---------- Board construction ----------
+  function buildSquares() {
+    squaresEl.innerHTML = "";
+    squareEls = [];
+    for (var y = 0; y < 8; y++) {
+      for (var x = 0; x < 8; x++) {
+        var d = document.createElement("div");
+        d.className = "sq";
+        squaresEl.appendChild(d);
+        squareEls.push(d);
+      }
+    }
+    orientSquares();
+  }
+  function orientSquares() {
+    for (var i = 0; i < 64; i++) {
+      var x = i % 8, y = (i / 8) | 0, sq = xyToSq(x, y);
+      var d = squareEls[i];
+      d.dataset.sq = sq;
+      d.classList.toggle("light", (((sq >> 4) + (sq & 7)) & 1) === 1);
+    }
+    boardEl.classList.toggle("flipped", settings.flip);
+  }
+  function squareEl(sq) {
+    var p = sqToXY(sq);
+    return squareEls[p.y * 8 + p.x];
+  }
+  function placePiece(el, sq) {
+    var p = sqToXY(sq);
+    el.style.setProperty("--x", p.x);
+    el.style.setProperty("--y", p.y);
+  }
+  function rebuildPieces() {
+    piecesEl.innerHTML = "";
+    pieceEls = {};
+    for (var sq = 0; sq < 120; sq++) {
+      if (sq & 0x88) { sq += 7; continue; }
+      var v = pos.b[sq];
+      if (!v) continue;
+      var el = document.createElement("div");
+      el.className = "piece no-anim";
+      el.innerHTML = pieceSVG(v);
+      el.dataset.v = v;
+      placePiece(el, sq);
+      piecesEl.appendChild(el);
+      pieceEls[sq] = el;
+    }
+    // Re-enable sliding once the pieces are in place.
+    requestAnimationFrame(function () {
+      requestAnimationFrame(function () {
+        for (var k in pieceEls) pieceEls[k].classList.remove("no-anim");
+      });
+    });
+  }
+  function repositionPieces() {
+    for (var k in pieceEls) {
+      pieceEls[k].classList.add("no-anim");
+      placePiece(pieceEls[k], +k);
+    }
+    requestAnimationFrame(function () {
+      requestAnimationFrame(function () {
+        for (var k in pieceEls) pieceEls[k].classList.remove("no-anim");
+      });
+    });
+  }
+
+  // Animate the DOM pieces for move m (called before pos.make(m)).
+  function animateMove(m, dropped) {
+    var from = E.mFrom(m), to = E.mTo(m), flag = E.mFlag(m), promo = E.mPromo(m);
+    var side = pos.side;
+    var capSq = (flag & E.FLAG_EP) ? to - (side === 1 ? 16 : -16) : to;
+    var capEl = pieceEls[capSq];
+    if (capEl) {
+      delete pieceEls[capSq];
+      capEl.classList.add("gone");
+      setTimeout(function () { if (capEl.parentNode) capEl.parentNode.removeChild(capEl); }, 260);
+    }
+    var el = pieceEls[from];
+    if (el) {
+      delete pieceEls[from];
+      pieceEls[to] = el;
+      if (dropped) {
+        el.classList.add("no-anim");
+        el.classList.remove("dragging");
+        el.style.transform = "";
+        placePiece(el, to);
+        requestAnimationFrame(function () { requestAnimationFrame(function () { el.classList.remove("no-anim"); }); });
+      } else {
+        placePiece(el, to);
+      }
+      if (promo) {
+        el.innerHTML = pieceSVG(promo * side);
+        el.dataset.v = promo * side;
+      }
+    }
+    if (flag & E.FLAG_CASTLE) {
+      var rf, rt;
+      if (to === 6) { rf = 7; rt = 5; } else if (to === 2) { rf = 0; rt = 3; }
+      else if (to === 118) { rf = 119; rt = 117; } else { rf = 112; rt = 115; }
+      var rook = pieceEls[rf];
+      if (rook) { delete pieceEls[rf]; pieceEls[rt] = rook; placePiece(rook, rt); }
+    }
+  }
+  function piecesInSync() {
+    var count = 0;
+    for (var sq = 0; sq < 120; sq++) {
+      if (sq & 0x88) { sq += 7; continue; }
+      var v = pos.b[sq], el = pieceEls[sq];
+      if (!v) continue;
+      count++;
+      if (!el || +el.dataset.v !== v) return false;
+    }
+    return count === Object.keys(pieceEls).length;
+  }
+
+  // ---------- Status ----------
+  function repetitionCount() {
+    var cur = keys[keys.length - 1], n = 0;
+    for (var i = 0; i < keys.length; i++) if (keys[i] === cur) n++;
+    return n;
+  }
+  function computeGameOver() {
+    if (!legal.length) {
+      if (pos.inCheck()) {
+        return { title: "Checkmate!", text: sideName(-pos.side) + " wins", winner: -pos.side };
+      }
+      return { title: "Stalemate", text: "It's a draw: " + sideName(pos.side) + " has no legal moves", winner: 0 };
+    }
+    if (pos.insufficientMaterial()) return { title: "Draw", text: "Not enough material to checkmate", winner: 0 };
+    if (pos.half >= 100) return { title: "Draw", text: "Fifty moves without a capture or pawn move", winner: 0 };
+    if (repetitionCount() >= 3) return { title: "Draw", text: "Threefold repetition", winner: 0 };
+    return null;
+  }
+  function resultHeadline() {
+    if (!gameOver) return "";
+    var vsAI = settings.mode === "white" || settings.mode === "black";
+    if (gameOver.winner && vsAI) {
+      var human = settings.mode === "white" ? 1 : -1;
+      return gameOver.winner === human ? "You win!" : "The computer wins";
+    }
+    return gameOver.text;
+  }
+
+  // ---------- Rendering ----------
+  function render() {
+    var side = pos.side;
+    var inCheck = pos.inCheck();
+    var targets = {};
+    if (selected >= 0) {
+      legal.forEach(function (m) { if (E.mFrom(m) === selected) targets[E.mTo(m)] = m; });
+    }
+    var showHints = settings.hints === "on" && selected < 0 && !gameOver && !drag;
+    var reach = {};
+    if (showHints) {
+      legal.forEach(function (m) {
+        var to = E.mTo(m), t = Math.abs(pos.b[E.mFrom(m)]);
+        if (E.mPromo(m) && E.mPromo(m) !== E.QUEEN) return;
+        var cap = !!pos.b[to] || (E.mFlag(m) & E.FLAG_EP);
+        var r = reach[to] || (reach[to] = { cap: cap, list: [] });
+        r.list.push(t * side);
+      });
+    }
+    var lf = lastMove ? E.mFrom(lastMove) : -1, lt = lastMove ? E.mTo(lastMove) : -1;
+    var kingSq = pos.k[side === 1 ? 0 : 1];
+    for (var i = 0; i < 64; i++) {
+      var d = squareEls[i];
+      var sq = +d.dataset.sq;
+      var x = i % 8, y = (i / 8) | 0;
+      var html = "";
+      if (y === 7) html += '<span class="coord file">' + "abcdefgh".charAt(sq & 7) + "</span>";
+      if (x === 0) html += '<span class="coord rank">' + ((sq >> 4) + 1) + "</span>";
+      if (targets[sq] !== undefined) {
+        var isCap = !!pos.b[sq] || (E.mFlag(targets[sq]) & E.FLAG_EP);
+        html += isCap ? '<span class="ring"></span>' : '<span class="dot"></span>';
+      } else if (reach[sq]) {
+        var r = reach[sq];
+        html += '<div class="hints' + (r.cap ? " caps" : "") + '">' + r.list.slice(0, r.cap ? 4 : 8).map(pieceSVG).join("") + "</div>";
+      }
+      d.innerHTML = html;
+      d.classList.toggle("last", sq === lf || sq === lt);
+      d.classList.toggle("sel", sq === selected);
+      d.classList.toggle("check", inCheck && sq === kingSq);
+      d.classList.remove("over");
+    }
+    // Piece emphasis like the original: pieces that can act are outlined.
+    var movable = {};
+    legal.forEach(function (m) { movable[E.mFrom(m)] = true; });
+    for (var k in pieceEls) {
+      var el = pieceEls[k], s = +k;
+      el.classList.toggle("sel", s === selected);
+      el.classList.toggle("target", targets[s] !== undefined);
+      el.classList.toggle("inactive", !movable[s] || !!gameOver);
+    }
+    renderStatus(inCheck);
+    renderCaptures();
+    renderMoves();
+    renderButtons();
+  }
+
+  function renderStatus(inCheck) {
+    var side = pos.side;
+    dotEl.className = "dot " + (side === 1 ? "white" : "black");
+    statusCard.classList.toggle("alert", !!gameOver || inCheck);
+    thinkingEl.classList.toggle("hidden", !aiBusy);
+    var last = history.length ? history[history.length - 1] : null;
+    var lastText = last ? "Last move: " + Math.ceil(history.length / 2) + (history.length % 2 ? ". " : "... ") + last.san : "";
+    if (gameOver) {
+      statusEl.textContent = gameOver.title + (gameOver.winner ? " " + resultHeadline() : "");
+      subEl.textContent = gameOver.winner && resultHeadline() === gameOver.text ? (lastText || " ") : gameOver.text;
+      dotEl.className = "dot " + (gameOver.winner === -1 ? "black" : "white");
+      return;
+    }
+    var mode = settings.mode;
+    if (isAI(side)) {
+      statusEl.textContent = mode === "watch" ? sideName(side) + " is thinking" : "Computer is thinking";
+    } else if (mode === "white" || mode === "black") {
+      statusEl.textContent = inCheck ? "Check! Your move" : "Your move";
+    } else {
+      statusEl.textContent = (inCheck ? "Check! " : "") + sideName(side) + " to move";
+    }
+    if (inCheck && isAI(side)) subEl.textContent = sideName(side) + " is in check";
+    else subEl.textContent = lastText || (mode === "white" || mode === "black" ? "You play " + (mode === "white" ? "White" : "Black") + ". Tap or drag a piece." : "Tap or drag a piece to move.");
+  }
+
+  function renderCaptures() {
+    var counts = { 1: [0, 0, 0, 0, 0, 0, 0], "-1": [0, 0, 0, 0, 0, 0, 0] };
+    var mat = { 1: 0, "-1": 0 };
+    for (var sq = 0; sq < 120; sq++) {
+      if (sq & 0x88) { sq += 7; continue; }
+      var v = pos.b[sq];
+      if (!v) continue;
+      var s = v > 0 ? 1 : -1;
+      counts[s][Math.abs(v)]++;
+      mat[s] += E.VAL[Math.abs(v)];
+    }
+    [1, -1].forEach(function (s) {
+      // Pieces of the other colour that are missing were taken by side s.
+      var other = -s, html = "";
+      var extraPromoted = 0;
+      for (var t = 2; t <= 5; t++) extraPromoted += Math.max(0, counts[other][t] - START_COUNTS[t]);
+      for (t = 5; t >= 1; t--) {
+        var missing = START_COUNTS[t] - counts[other][t];
+        if (t === 1) missing -= extraPromoted;
+        for (var n = 0; n < missing; n++) html += pieceSVG(t * other);
+      }
+      $(s === 1 ? "cap-white" : "cap-black").innerHTML = html;
+      var adv = mat[s] - mat[other];
+      $(s === 1 ? "adv-white" : "adv-black").textContent = adv > 0 ? "+" + Math.round(adv / 100) : "";
+    });
+  }
+
+  function renderMoves() {
+    var html = "";
+    for (var i = 0; i < history.length; i += 2) {
+      html += '<li><span class="n">' + (i / 2 + 1) + '.</span><span class="mv' + (i === history.length - 1 ? " cur" : "") + '">' + history[i].san + "</span>" +
+        (history[i + 1] ? '<span class="mv' + (i + 1 === history.length - 1 ? " cur" : "") + '">' + history[i + 1].san + "</span>" : "<span></span>") + "</li>";
+    }
+    movesEl.innerHTML = html;
+    movesEl.classList.toggle("empty", !history.length);
+    movesEl.scrollTop = movesEl.scrollHeight;
+  }
+
+  function renderButtons() {
+    btnUndo.disabled = !canUndo();
+    document.querySelectorAll(".seg").forEach(function (seg) {
+      var key = seg.getAttribute("data-setting");
+      seg.querySelectorAll("button").forEach(function (b) {
+        var on = b.getAttribute("data-value") === String(settings[key]);
+        b.classList.toggle("on", on);
+        b.setAttribute("aria-pressed", on ? "true" : "false");
+      });
+    });
+  }
+
+  // ---------- Moves ----------
+  function refreshLegal() {
+    legal = pos.legalMoves();
+    gameOver = computeGameOver();
+  }
+
+  function applyMove(m, opts) {
+    opts = opts || {};
+    var san = pos.san(m, legal);
+    animateMove(m, opts.dropped);
+    pos.make(m);
+    history.push({ m: m, san: san });
+    keys.push(pos.key());
+    lastMove = m;
+    selected = -1;
+    refreshLegal();
+    if (!piecesInSync()) rebuildPieces();
+    resultDismissed = false;
+    persistGame();
+    render();
+    if (gameOver) showResult();
+    scheduleAI();
+  }
+
+  function tryMove(from, to, opts) {
+    var options = legal.filter(function (m) { return E.mFrom(m) === from && E.mTo(m) === to; });
+    if (!options.length) return false;
+    if (options.length > 1) { showPromo(from, to, options, opts); return true; }
+    applyMove(options[0], opts);
+    return true;
+  }
+
+  function showPromo(from, to, options, opts) {
+    // Put a dragged pawn back on its square while the player chooses.
+    if (opts && opts.dropped) snapBack(from);
+    pendingPromo = { from: from, to: to, options: options, at: Date.now() };
+    var side = pos.side;
+    var html = '<div class="promo-box"><div class="promo-title">Promote to</div>';
+    [E.QUEEN, E.ROOK, E.BISHOP, E.KNIGHT].forEach(function (t) {
+      html += '<button type="button" data-t="' + t + '" aria-label="' + NAMES[t] + '">' + pieceSVG(t * side) + "</button>";
+    });
+    html += "</div>";
+    promoEl.innerHTML = html;
+    promoEl.classList.remove("hidden");
+    var first = promoEl.querySelector("button");
+    if (first) first.focus({ preventScroll: true });
+  }
+  function hidePromo() {
+    pendingPromo = null;
+    promoEl.classList.add("hidden");
+    promoEl.innerHTML = "";
+  }
+  promoEl.addEventListener("pointerdown", function (e) { e.stopPropagation(); });
+  promoEl.addEventListener("click", function (e) {
+    e.stopPropagation();
+    var b = e.target.closest("button");
+    var pp = pendingPromo;
+    if (!pp) return;
+    if (!b) {
+      // Ignore the click that a tap on the board synthesizes right after opening.
+      if (Date.now() - pp.at < 450) return;
+      hidePromo(); selected = -1; render(); return;
+    }
+    var t = +b.getAttribute("data-t");
+    var m = pp.options.filter(function (o) { return E.mPromo(o) === t; })[0];
+    hidePromo();
+    if (m) applyMove(m);
+  });
+
+  function showResult() {
+    if (!gameOver || resultDismissed) return;
+    $("result-title").textContent = gameOver.title;
+    $("result-text").textContent = resultHeadline() + (gameOver.winner && (settings.mode === "white" || settings.mode === "black") ? " (" + gameOver.text + ")" : "");
+    resultEl.classList.remove("hidden");
+  }
+  function hideResult() { resultEl.classList.add("hidden"); }
+
+  // ---------- Computer player ----------
+  var worker = null, workerFailed = false;
+  function makeWorker() {
+    if (worker || workerFailed) return worker;
+    try {
+      var src = "(" + createChessEngine.toString() + ")();";
+      var url = URL.createObjectURL(new Blob([src], { type: "text/javascript" }));
+      worker = new Worker(url);
+      worker.onmessage = onWorkerMessage;
+      worker.onerror = function (e) {
+        if (e && e.preventDefault) e.preventDefault();
+        workerFailed = true;
+        try { worker.terminate(); } catch (err) { /* ignore */ }
+        worker = null;
+        if (aiBusy) { var t = thinkToken; aiBusy = false; startThinking(t); }
+      };
+    } catch (e) {
+      workerFailed = true;
+      worker = null;
+    }
+    return worker;
+  }
+  var thinkStarted = 0;
+  function moveDelay() { return Math.round(1000 / (+settings.speed || 2)); }
+
+  function cancelAI() {
+    thinkToken++;
+    clearTimeout(aiTimer);
+    aiBusy = false;
+  }
+  function scheduleAI() {
+    cancelAI();
+    if (gameOver || pendingPromo || !isAI(pos.side) || document.hidden) { renderStatus(pos.inCheck()); return; }
+    aiBusy = true;
+    renderStatus(pos.inCheck());
+    var token = thinkToken;
+    // Let the last move finish sliding before starting the search.
+    aiTimer = setTimeout(function () { startThinking(token); }, 60);
+  }
+  function startThinking(token) {
+    if (token !== thinkToken) return;
+    aiBusy = true;
+    thinkStarted = Date.now();
+    var req = { id: token, fen: pos.fen(), level: settings.level, history: keys.slice() };
+    if (settings.level !== "random" && makeWorker()) {
+      worker.postMessage(req);
+    } else {
+      // Fallback without a worker: short, time-boxed search on the main thread.
+      setTimeout(function () {
+        if (token !== thinkToken) return;
+        req.maxTime = 250;
+        var r = E.think(req);
+        deliverMove(token, r.move);
+      }, 20);
+    }
+  }
+  function onWorkerMessage(e) {
+    var d = e.data || {};
+    deliverMove(d.id, d.move);
+  }
+  function deliverMove(token, move) {
+    if (token !== thinkToken) return;
+    var wait = Math.max(0, moveDelay() - (Date.now() - thinkStarted));
+    aiTimer = setTimeout(function () {
+      if (token !== thinkToken) return;
+      aiBusy = false;
+      if (legal.indexOf(move) < 0) move = legal[Math.floor(Math.random() * legal.length)];
+      if (!move) return;
+      selected = -1;
+      applyMove(move);
+    }, wait);
+  }
+
+  // ---------- Undo / new game ----------
+  function canUndo() {
+    if (!history.length || settings.mode === "watch") return false;
+    if (settings.mode === "both") return true;
+    // Against the computer there must be a move of yours to take back.
+    var human = settings.mode === "white" ? 1 : -1;
+    for (var i = 0; i < history.length; i++) {
+      var moverSide = (i % 2 === 0) ? startSide() : -startSide();
+      if (moverSide === human) return true;
+    }
+    return false;
+  }
+  function startSide() { return 1; }
+  function popMove() {
+    pos.unmake();
+    history.pop();
+    keys.pop();
+  }
+  function undo() {
+    if (!canUndo()) return;
+    cancelAI();
+    hidePromo();
+    hideResult();
+    if (settings.mode === "both") popMove();
+    else {
+      popMove();
+      while (history.length && isAI(pos.side)) popMove();
+    }
+    lastMove = history.length ? history[history.length - 1].m : 0;
+    selected = -1;
+    refreshLegal();
+    rebuildPieces();
+    persistGame();
+    render();
+    scheduleAI();
+  }
+
+  var newConfirmTimer = 0;
+  function requestNewGame() {
+    if (!history.length || gameOver || btnNew.classList.contains("confirm")) { newGame(); return; }
+    btnNew.classList.add("confirm");
+    btnNew.textContent = "Sure?";
+    clearTimeout(newConfirmTimer);
+    newConfirmTimer = setTimeout(resetNewButton, 3000);
+  }
+  function resetNewButton() {
+    clearTimeout(newConfirmTimer);
+    btnNew.classList.remove("confirm");
+    btnNew.textContent = "New game";
+  }
+  function newGame() {
+    resetNewButton();
+    cancelAI();
+    hidePromo();
+    hideResult();
+    pos = Position.fromFEN(Position.START);
+    history = [];
+    keys = [pos.key()];
+    lastMove = 0;
+    selected = -1;
+    if (settings.mode === "white") settings.flip = false;
+    else if (settings.mode === "black") settings.flip = true;
+    saveSettings();
+    orientSquares();
+    refreshLegal();
+    rebuildPieces();
+    persistGame();
+    render();
+    scheduleAI();
+  }
+
+  function persistGame() {
+    save("game", { moves: history.map(function (h) { return uci(h.m); }) });
+  }
+  function saveSettings() { save("settings", settings); }
+
+  function restoreGame() {
+    pos = Position.fromFEN(Position.START);
+    history = [];
+    keys = [pos.key()];
+    var saved = load("game", null);
+    var list = saved && Array.isArray(saved.moves) ? saved.moves : [];
+    for (var i = 0; i < list.length; i++) {
+      var ms = pos.legalMoves(), found = 0;
+      for (var j = 0; j < ms.length; j++) if (uci(ms[j]) === list[i]) { found = ms[j]; break; }
+      if (!found) break;
+      var san = pos.san(found, ms);
+      pos.make(found);
+      history.push({ m: found, san: san });
+      keys.push(pos.key());
+    }
+    lastMove = history.length ? history[history.length - 1].m : 0;
+    refreshLegal();
+    resultDismissed = !!gameOver; // don't greet a returning player with an old result card
+  }
+
+  // ---------- Pointer input on the board ----------
+  function canHumanMove() {
+    return !gameOver && !pendingPromo && !isAI(pos.side);
+  }
+  function snapBack(sq) {
+    var el = pieceEls[sq];
+    if (!el) return;
+    el.classList.remove("dragging");
+    el.style.transform = "";
+  }
+  function setOver(sq) {
+    squareEls.forEach(function (d) { d.classList.toggle("over", +d.dataset.sq === sq); });
+  }
+  function hasTarget(from, to) {
+    for (var i = 0; i < legal.length; i++) if (E.mFrom(legal[i]) === from && E.mTo(legal[i]) === to) return true;
+    return false;
+  }
+
+  boardEl.addEventListener("pointerdown", function (e) {
+    if (e.button !== undefined && e.button > 0) return;
+    if (!resultEl.classList.contains("hidden")) return;
+    if (!canHumanMove()) return;
+    var sq = eventSq(e);
+    if (sq < 0) return;
+    e.preventDefault();
+    var v = pos.b[sq];
+    if (selected >= 0 && hasTarget(selected, sq)) {
+      tryMove(selected, sq);
+      return;
+    }
+    if (v && (v > 0 ? 1 : -1) === pos.side) {
+      var wasSelected = selected === sq;
+      selected = sq;
+      render();
+      var rect = boardEl.getBoundingClientRect();
+      drag = { sq: sq, x0: e.clientX, y0: e.clientY, moved: false, wasSelected: wasSelected, id: e.pointerId, rect: rect };
+      try { boardEl.setPointerCapture(e.pointerId); } catch (err) { /* ignore */ }
+    } else if (selected >= 0) {
+      selected = -1;
+      render();
+    }
+  });
+  boardEl.addEventListener("pointermove", function (e) {
+    if (!drag || e.pointerId !== drag.id) return;
+    var tile = drag.rect.width / 8;
+    if (!drag.moved && Math.hypot(e.clientX - drag.x0, e.clientY - drag.y0) < Math.max(6, tile * 0.12)) return;
+    var el = pieceEls[drag.sq];
+    if (!el) return;
+    drag.moved = true;
+    el.classList.add("dragging");
+    var px = e.clientX - drag.rect.left - tile / 2, py = e.clientY - drag.rect.top - tile / 2;
+    el.style.transform = "translate(" + px + "px," + py + "px)";
+    var over = eventSq(e);
+    setOver(over >= 0 && hasTarget(drag.sq, over) ? over : -1);
+  });
+  function endDrag(e, cancelled) {
+    if (!drag || (e && e.pointerId !== drag.id)) return;
+    var d = drag;
+    drag = null;
+    try { boardEl.releasePointerCapture(d.id); } catch (err) { /* ignore */ }
+    setOver(-1);
+    if (d.moved) {
+      var to = cancelled ? -1 : eventSq(e);
+      if (to >= 0 && to !== d.sq && hasTarget(d.sq, to)) {
+        tryMove(d.sq, to, { dropped: true });
+        return;
+      }
+      snapBack(d.sq);
+      render();
+    } else if (d.wasSelected) {
+      selected = -1;
+      render();
+    }
+  }
+  boardEl.addEventListener("pointerup", function (e) { endDrag(e, false); });
+  boardEl.addEventListener("pointercancel", function (e) { endDrag(e, true); });
+  boardEl.addEventListener("lostpointercapture", function (e) { if (drag && e.pointerId === drag.id) endDrag(e, true); });
+  document.addEventListener("contextmenu", function (e) { e.preventDefault(); });
+
+  // ---------- Buttons & settings ----------
+  btnNew.addEventListener("click", requestNewGame);
+  btnUndo.addEventListener("click", undo);
+  btnFlip.addEventListener("click", function () {
+    settings.flip = !settings.flip;
+    saveSettings();
+    orientSquares();
+    repositionPieces();
+    render();
+  });
+  $("result-new").addEventListener("click", newGame);
+  $("result-close").addEventListener("click", function () { resultDismissed = true; hideResult(); });
+
+  function openSheet() { app.classList.add("sheet-open"); scrim.classList.remove("hidden"); }
+  function closeSheet() { app.classList.remove("sheet-open"); scrim.classList.add("hidden"); }
+  btnSettings.addEventListener("click", openSheet);
+  $("settings-close").addEventListener("click", closeSheet);
+  scrim.addEventListener("click", closeSheet);
+
+  document.querySelectorAll(".seg").forEach(function (seg) {
+    seg.addEventListener("click", function (e) {
+      var b = e.target.closest("button");
+      if (!b) return;
+      var key = seg.getAttribute("data-setting"), value = b.getAttribute("data-value");
+      if (settings[key] === value) return;
+      settings[key] = value;
+      if (key === "mode") {
+        var flip = settings.flip;
+        if (value === "white") flip = false;
+        else if (value === "black") flip = true;
+        if (flip !== settings.flip) { settings.flip = flip; orientSquares(); repositionPieces(); }
+        selected = -1;
+      }
+      saveSettings();
+      render();
+      if (key === "mode" || key === "level") scheduleAI();
+      if (key === "mode" && gameOver && !resultDismissed) showResult();
+    });
+  });
+
+  document.addEventListener("keydown", function (e) {
+    if (e.ctrlKey || e.metaKey || e.altKey) return;
+    var k = e.key.toLowerCase();
+    if (k === "escape") {
+      if (app.classList.contains("sheet-open")) closeSheet();
+      else if (pendingPromo) { hidePromo(); render(); }
+      else if (selected >= 0) { selected = -1; render(); }
+    } else if (k === "u" || k === "backspace") { e.preventDefault(); undo(); }
+    else if (k === "f") btnFlip.click();
+  });
+
+  document.addEventListener("visibilitychange", function () {
+    if (document.hidden) { cancelAI(); renderStatus(pos.inCheck()); }
+    else scheduleAI();
+  });
+
+  // ---------- Layout ----------
+  function clamp(v, a, b) { return Math.max(a, Math.min(b, v)); }
+  function layout() {
+    var W = window.innerWidth, H = window.innerHeight;
+    var gap = Math.round(clamp(Math.min(W, H) * 0.022, 8, 22));
+    var landW = Math.min(H - 2 * gap, W - 3 * gap - 250);
+    var portH = Math.min(W - 2 * gap, H - 3 * gap - 150);
+    var landscape = landW > portH;
+    var outer = Math.max(160, Math.floor(landscape ? landW : portH));
+    var frame = Math.max(6, Math.round(outer * 0.028));
+    var board = Math.floor((outer - 2 * frame) / 8) * 8;
+    outer = board + 2 * frame;
+    var st = document.documentElement.style;
+    st.setProperty("--board", board + "px");
+    st.setProperty("--frame", frame + "px");
+    st.setProperty("--gap", gap + "px");
+    app.classList.toggle("landscape", landscape);
+    app.classList.toggle("portrait", !landscape);
+    var panelW, panelH;
+    if (landscape) {
+      panelW = clamp(W - outer - 3 * gap, 250, 380);
+      panelH = outer;
+    } else {
+      panelW = Math.min(W - 2 * gap, Math.max(outer, 320));
+      panelH = H - outer - 3 * gap;
+    }
+    st.setProperty("--panel-w", panelW + "px");
+    st.setProperty("--panel-h", panelH + "px");
+    panel.style.height = panelH + "px";
+    panel.style.overflow = "hidden";
+    app.classList.remove("compact", "tight", "no-moves");
+    if (panel.scrollHeight > panelH + 1) app.classList.add("compact");
+    if (panel.scrollHeight > panelH + 1) app.classList.add("tight");
+    if (movesEl.clientHeight < 56) app.classList.add("no-moves");
+    if (!app.classList.contains("compact")) closeSheet();
+    movesEl.scrollTop = movesEl.scrollHeight;
+  }
+  var layoutRaf = 0;
+  function queueLayout() {
+    cancelAnimationFrame(layoutRaf);
+    layoutRaf = requestAnimationFrame(layout);
+  }
+  window.addEventListener("resize", queueLayout);
+  window.addEventListener("orientationchange", function () { setTimeout(layout, 150); });
+
+  // ---------- Start ----------
+  buildSquares();
+  restoreGame();
+  rebuildPieces();
+  render();
+  layout();
+  if (gameOver) showResult();
+  scheduleAI();
+
+  // Small hook for automated screenshots/tests.
+  window.ChessAI = {
+    get fen() { return pos.fen(); },
+    play: function (list) {
+      cancelAI();
+      list.forEach(function (s) {
+        var m = legal.filter(function (x) { return uci(x) === s; })[0];
+        if (m) { animateMove(m); pos.make(m); history.push({ m: m, san: "" }); keys.push(pos.key()); lastMove = m; refreshLegal(); }
+      });
+      // recompute SAN for the list
+      var p = Position.fromFEN(Position.START);
+      history.forEach(function (h) { h.san = p.san(h.m); p.make(h.m); });
+      rebuildPieces(); persistGame(); render(); if (gameOver) showResult(); scheduleAI();
+    },
+    newGame: newGame
+  };
+})();
