@@ -1,39 +1,102 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-  <meta charset="UTF-8">
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
   <title>Chess AI</title>
-  <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no">
-  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/normalize/5.0.0/normalize.min.css">
-  <link rel="stylesheet" href="./style.css">
-
+  <link rel="stylesheet" href="style.css">
 </head>
 <body>
-<!-- partial:index.partial.html -->
-<section id="view">
-  <aside>
-    <div>
-      <h3 title="Autoplay">Auto</h3>
-      <label for="white-random"><input type="checkbox" id="white-random" /><svg width="170" height="170" viewBox="0 0 170 170" fill="none" xmlns="http://www.w3.org/2000/svg" class="white"><use href="#king" /></svg></label>
-      <label for="black-random"><input type="checkbox" id="black-random" checked /><svg width="170" height="170" viewBox="0 0 170 170" fill="none" xmlns="http://www.w3.org/2000/svg" class="black"><use href="#king" /></svg></label>
+<div id="app" class="portrait">
+  <div id="stage">
+    <div id="frame">
+      <div id="board" aria-label="Chess board">
+        <div id="squares"></div>
+        <div id="pieces"></div>
+        <div id="promo" class="hidden" role="dialog" aria-label="Choose a promotion piece"></div>
+        <div id="result" class="hidden" role="dialog" aria-live="polite">
+          <div class="result-card">
+            <div id="result-title">Checkmate</div>
+            <div id="result-text">White wins</div>
+            <div class="result-buttons">
+              <button type="button" id="result-new" class="btn primary">New game</button>
+              <button type="button" id="result-close" class="btn">View board</button>
+            </div>
+          </div>
+        </div>
+      </div>
     </div>
-    <div>
-      <h3 title="Actions per Second">APS</h3>
-      <label for="speed-slow"><input type="radio" name="speed" id="speed-slow" /><span>1</span></label>
-      <label for="speed-medium"><input type="radio" name="speed" id="speed-medium" checked /><span>2</span></label>
-      <label for="speed-fast"><input type="radio" name="speed" id="speed-fast" /><span>4</span></label>
-      <label for="speed-asap"><input type="radio" name="speed" id="speed-asap" /><span>20</span></label>
-    </div>
-    <div>
-      <h3 title="Point of View">POV</h3>
-      <label for="white-perspective"><input type="radio" name="perspective" id="white-perspective" checked /><svg width="170" height="170" viewBox="0 0 170 170" fill="none" xmlns="http://www.w3.org/2000/svg" class="white"><use href="#king" /></svg></label>
-      <label for="black-perspective"><input type="radio" name="perspective" id="black-perspective" /><svg width="170" height="170" viewBox="0 0 170 170" fill="none" xmlns="http://www.w3.org/2000/svg" class="black"><use href="#king" /></svg></label>
-    </div>
-  </aside>
-  <div id="board"></div>
-</section>
+  </div>
 
-<svg aria-hidden style="display: none;" width="170" height="170" viewBox="0 0 170 170" fill="none" xmlns="http://www.w3.org/2000/svg">
+  <aside id="panel">
+    <div id="status-card">
+      <span id="turn-dot" class="dot white"></span>
+      <div class="status-lines">
+        <div id="status">White to move</div>
+        <div id="substatus">&nbsp;</div>
+      </div>
+      <span id="thinking" class="hidden" aria-hidden="true"><i></i><i></i><i></i></span>
+    </div>
+
+    <div id="captures">
+      <div class="cap-row"><span class="cap-label">White took</span><span id="cap-white" class="cap-list"></span><span id="adv-white" class="adv"></span></div>
+      <div class="cap-row"><span class="cap-label">Black took</span><span id="cap-black" class="cap-list"></span><span id="adv-black" class="adv"></span></div>
+    </div>
+
+    <div id="actions">
+      <button type="button" id="btn-new" class="btn">New game</button>
+      <button type="button" id="btn-undo" class="btn">Undo</button>
+      <button type="button" id="btn-flip" class="btn" title="Point of view: flip the board">Flip</button>
+      <button type="button" id="btn-settings" class="btn">Options</button>
+    </div>
+
+    <div id="settings">
+      <div class="sheet-head">
+        <span>Options</span>
+        <button type="button" id="settings-close" class="btn icon" aria-label="Close options">&times;</button>
+      </div>
+      <div class="setting">
+        <div class="setting-label">You play</div>
+        <div class="seg" data-setting="mode">
+          <button type="button" data-value="white">White</button>
+          <button type="button" data-value="black">Black</button>
+          <button type="button" data-value="both" title="Two players on one device">2 players</button>
+          <button type="button" data-value="watch" title="Computer plays both sides">Watch</button>
+        </div>
+      </div>
+      <div class="setting">
+        <div class="setting-label">Computer</div>
+        <div class="seg" data-setting="level">
+          <button type="button" data-value="random" title="Plays random legal moves">Random</button>
+          <button type="button" data-value="easy">Easy</button>
+          <button type="button" data-value="medium">Medium</button>
+          <button type="button" data-value="hard">Hard</button>
+        </div>
+      </div>
+      <div class="setting">
+        <div class="setting-label">Speed <small>(moves per second)</small></div>
+        <div class="seg" data-setting="speed">
+          <button type="button" data-value="1">1</button>
+          <button type="button" data-value="2">2</button>
+          <button type="button" data-value="4">4</button>
+          <button type="button" data-value="20">20</button>
+        </div>
+      </div>
+      <div class="setting">
+        <div class="setting-label">Reach hints <small>(icons of the pieces that can reach each square)</small></div>
+        <div class="seg" data-setting="hints">
+          <button type="button" data-value="on">On</button>
+          <button type="button" data-value="off">Off</button>
+        </div>
+      </div>
+    </div>
+
+    <ol id="moves" aria-label="Move list"></ol>
+  </aside>
+  <div id="scrim" class="hidden"></div>
+</div>
+
+<svg id="piece-defs" aria-hidden="true" focusable="false" width="0" height="0" viewBox="0 0 170 170" fill="none" xmlns="http://www.w3.org/2000/svg">
   <g id="pawn">
     <path fill="var(--stroke)" d="M63.9596 75.8417L71.9157 80.049C73.2376 77.5492 73.3078 74.5734 72.1052 72.0141C70.9025 69.4547 68.5669 67.6094 65.7987 67.0316L63.9596 75.8417ZM53.8303 94.9961L61.7863 99.2034L61.7864 99.2034L53.8303 94.9961ZM53.2512 96.2739L44.7646 93.2777L44.7646 93.2777L53.2512 96.2739ZM54.1798 112V121C57.4071 121 60.3874 119.272 61.9907 116.471C63.5939 113.67 63.5747 110.225 61.9403 107.442L54.1798 112ZM114.82 112L107.06 107.442C105.425 110.225 105.406 113.67 107.009 116.471C108.613 119.272 111.593 121 114.82 121V112ZM115.749 96.2739L124.235 93.2776L124.235 93.2776L115.749 96.2739ZM115.17 94.9961L107.214 99.2034L107.214 99.2034L115.17 94.9961ZM105.111 75.9755L104.388 67.0046C101.37 67.2479 98.6777 68.9917 97.2213 71.6453C95.7649 74.2989 95.74 77.5069 97.1551 80.1828L105.111 75.9755ZM101.706 61L94.1937 56.0436C92.3701 58.8076 92.2116 62.3498 93.7811 65.2657C95.3506 68.1816 98.3945 70 101.706 70V61ZM68.294 61V70C71.6055 70 74.6494 68.1816 76.2189 65.2657C77.7884 62.3498 77.6299 58.8076 75.8063 56.0436L68.294 61ZM56.0036 71.6343L45.8743 90.7887L61.7864 99.2034L71.9157 80.049L56.0036 71.6343ZM45.8743 90.7887C45.5683 91.3674 45.1338 92.2321 44.7646 93.2777L61.7378 99.2702C61.7062 99.3598 61.685 99.4043 61.691 99.3911C61.6938 99.3851 61.7021 99.3674 61.718 99.3356C61.7341 99.3035 61.756 99.2608 61.7863 99.2034L45.8743 90.7887ZM44.7646 93.2777C43.8488 95.8717 40.5174 106.509 46.4192 116.558L61.9403 107.442C61.2075 106.194 60.9315 104.686 61.0138 103C61.0971 101.296 61.5308 99.8565 61.7378 99.2702L44.7646 93.2777ZM54.1798 103H54V121H54.1798V103ZM54 103C41.2975 103 31 113.297 31 126H49C49 123.239 51.2386 121 54 121V103ZM31 126C31 138.703 41.2974 149 54 149V131C51.2386 131 49 128.761 49 126H31ZM54 149H116V131H54V149ZM116 149C128.703 149 139 138.703 139 126H121C121 128.761 118.761 131 116 131V149ZM139 126C139 113.297 128.703 103 116 103V121C118.761 121 121 123.239 121 126H139ZM116 103H114.82V121H116V103ZM122.581 116.558C128.483 106.509 125.151 95.8716 124.235 93.2776L107.262 99.2702C107.469 99.8565 107.903 101.296 107.986 103C108.069 104.686 107.793 106.194 107.06 107.442L122.581 116.558ZM124.235 93.2776C123.866 92.2321 123.432 91.3674 123.126 90.7887L107.214 99.2034C107.244 99.2608 107.266 99.3035 107.282 99.3356C107.298 99.3674 107.306 99.3851 107.309 99.3912C107.315 99.4043 107.294 99.3598 107.262 99.2702L124.235 93.2776ZM123.126 90.7888L113.067 71.7681L97.1551 80.1828L107.214 99.2034L123.126 90.7888ZM103 68.5C103 67.7083 103.607 67.0675 104.388 67.0046L105.835 84.9463C114.328 84.2614 121 77.1644 121 68.5H103ZM104.5 70C103.672 70 103 69.3284 103 68.5H121C121 59.3873 113.613 52 104.5 52V70ZM101.706 70H104.5V52H101.706V70ZM109.218 65.9564C112.241 61.375 114 55.8793 114 50H96C96 52.248 95.3352 54.3134 94.1937 56.0436L109.218 65.9564ZM114 50C114 33.9837 101.016 21 85 21V39C91.0751 39 96 43.9249 96 50H114ZM85 21C68.9837 21 56 33.9837 56 50H74C74 43.9249 78.9249 39 85 39V21ZM56 50C56 55.8793 57.7591 61.375 60.7818 65.9564L75.8063 56.0436C74.6648 54.3134 74 52.248 74 50H56ZM65.5 70H68.294V52H65.5V70ZM67 68.5C67 69.3284 66.3284 70 65.5 70V52C56.3873 52 49 59.3873 49 68.5H67ZM65.7987 67.0316C66.4826 67.1743 67 67.7665 67 68.5H49C49 76.4618 54.6302 83.0882 62.1205 84.6518L65.7987 67.0316Z" />
     <path fill-rule="evenodd" clip-rule="evenodd" d="M63.9596 75.8417L53.8303 94.9961C53.6109 95.4111 53.4075 95.8312 53.2512 96.2739C52.4848 98.4448 50.4371 105.627 54.1798 112H54C46.268 112 40 118.268 40 126C40 133.732 46.268 140 54 140H116C123.732 140 130 133.732 130 126C130 118.268 123.732 112 116 112H114.82C118.563 105.627 116.515 98.4447 115.749 96.2739C115.592 95.8312 115.389 95.4111 115.17 94.9961L105.111 75.9755C108.967 75.6645 112 72.4364 112 68.5C112 64.3579 108.642 61 104.5 61H101.706C103.788 57.8442 105 54.0636 105 50C105 38.9543 96.0457 30 85 30C73.9543 30 65 38.9543 65 50C65 54.0636 66.2119 57.8442 68.294 61H65.5C61.3579 61 58 64.3579 58 68.5C58 72.1142 60.5564 75.1312 63.9596 75.8417Z" />
@@ -65,8 +128,8 @@
     <path fill-rule="evenodd" clip-rule="evenodd" d="M80.8877 14C75.0887 14 70.3877 18.701 70.3877 24.5C70.3877 26.1104 70.7502 27.6361 71.3981 29H62.8877C57.0887 29 52.3877 33.701 52.3877 39.5C52.3877 42.438 53.5944 45.0942 55.5392 47H36.0125C22.6829 47 13.0834 59.7934 16.8101 72.5915L30.4959 119.592C32.4647 126.353 37.7814 131.441 44.3251 133.266C41.8876 135.786 40.3877 139.218 40.3877 143C40.3877 150.732 46.6557 157 54.3877 157H116.388C124.12 157 130.388 150.732 130.388 143C130.388 139.211 128.883 135.774 126.438 133.253C132.96 131.417 138.256 126.337 140.22 119.592L153.906 72.5915C157.633 59.7934 148.033 47 134.704 47H115.236C117.181 45.0942 118.388 42.438 118.388 39.5C118.388 33.701 113.687 29 107.888 29H99.3773C100.025 27.6361 100.388 26.1104 100.388 24.5C100.388 18.701 95.6867 14 89.8877 14H80.8877Z" />
   </g>
 </svg>
-<!-- partial -->
-  <script src="./game.js"></script>
 
+<script src="engine.js"></script>
+<script src="game.js"></script>
 </body>
 </html>
